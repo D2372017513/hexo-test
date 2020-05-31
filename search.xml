@@ -1,6 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>MBR和EBR</title>
+    <url>/hexo-test/Information-Security-Study/Others/MBR%EF%BC%86EBR/</url>
+    <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>写这个的原因是做病毒实验（没错，又是病毒实验-_-）划分磁盘分区的时候，看老师的讲解视频看的一头雾水。她实在是太能折腾了，绕来绕去一大堆就为了讲一句话，头疼。防止以后忘了，写一笔（我可不想再被折磨一次）。</p>
+<a id="more"></a>
+<p>感谢两位大佬的文章：</p>
+<a href="http://www.soilhead.cn/post-51.html" title target>cazure</a>以及<a href="https://www.cnblogs.com/april30138/p/3924930.html" title target>叶子清风</a>
+<h1 id="1、MBR"><a href="#1、MBR" class="headerlink" title="1、MBR"></a>1、MBR</h1><h2 id="硬盘结构"><a href="#硬盘结构" class="headerlink" title="硬盘结构"></a>硬盘结构</h2><p>要提MBR和EBR那就绕不过硬盘结构这坎儿，硬盘有很多盘片组成，每个盘片的每个面都有一个读写磁头。如果有N个盘片。就有2N个面，对应2N个磁头(Heads)，从0、1、2开始编号。每个盘片的半径均为固定值R的同心圆再逻辑上形成了一个以电机主轴为轴的柱面(Cylinders)，从外至里编号为0、1、2……。每个盘片上的每个磁道又被划分为几十个扇区(Sector)，通常的容量是512byte，并按照一定规则编号为1、2、3……形成Cylinders×Heads×Sector个扇区。</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/MBR%EF%BC%86EBR/%E7%A1%AC%E7%9B%98%E7%BB%93%E6%9E%84.png" class>
+<h2 id="主引导扇区MBR（master-boot-record）"><a href="#主引导扇区MBR（master-boot-record）" class="headerlink" title="主引导扇区MBR（master boot record）"></a>主引导扇区MBR（master boot record）</h2><p>主引导记录（Master Boot Record，缩写：MBR），又叫做主引导扇区，是计算机开机后访问硬盘时所必须要读取的首个扇区，它在硬盘上的三维地址为（0柱面，0磁头，1扇区）,bios在执行自己固有的程序以后就会jump到MBR中的第一条指令。将系统的控制权交由MBR来执行。在深入讨论主引导扇区内部结构的时候，有时也将其开头的446字节内容特指为“主引导记录”MBR（Master Boot Record或者Main Boot Record），其后是4个16字节的“磁盘分区表”DPT（Disk Partition Table），以及2字节的结束标志（55AA）。因此，在使用“主引导记录”（MBR）这个术语的时候，需要根据具体情况判断其到底是指整个主引导扇区，还是主引导扇区的前446字节。</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/MBR%EF%BC%86EBR/MBR%E6%95%B0%E6%8D%AE%E6%9E%84%E6%88%90.png" class>
+<p>对于硬盘而言，一个扇区可能的字节数为128×2n (n=0,1,2,3)。大多情况下，取n=2，即一个扇区(sector)的大小为512字节。在总共512byte的主引导记录中，MBR的引导程序占了其中的前446个字节(偏移0H ~ 偏移1BDH)，随后的64个字节(偏移1BEH~偏移1FDH)为DPT(Disk PartitionTable，硬盘分区表)，最后的两个字节“55 AA”(偏移1FEH ~ 偏移1FFH)是分区有效结束标志。</p>
+<p>利用WinHex查看最开始的512B</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/MBR%EF%BC%86EBR/MBR%E6%95%B0%E6%8D%AE%E8%AF%A6%E6%83%85.png" class>
+<h2 id="启动代码-boot"><a href="#启动代码-boot" class="headerlink" title="启动代码 boot"></a>启动代码 boot</h2><p> 主引导记录最开头是第一阶段引导代码。其中的硬盘引导程序的主要作用是检查分区表是否正确并且在系统硬件完成自检以后将控制权交给硬盘上的引导程序（如GNU GRUB）。 它不依赖任何操作系统，而且启动代码也是可以改变的，从而能够实现多系统引导。MRB的引导代码是计算机系统的关键，如果这个不能正常工作系统就启动不了。</p>
+<h2 id="硬盘分区表-DPT（Disk-Partition-Table）"><a href="#硬盘分区表-DPT（Disk-Partition-Table）" class="headerlink" title="硬盘分区表 DPT（Disk Partition Table）"></a>硬盘分区表 DPT（Disk Partition Table）</h2><p>硬盘分区表占据主引导扇区的64个字节(偏移01BEH–偏移01FDH)，可以对四个分区的信息进行描述，其中每个分区的信息占据16个字节。具体每个字节的定义可以参见硬盘分区结构信息。</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/MBR%EF%BC%86EBR/DPT%E8%AF%A6%E8%A7%A3.png" class>
+<p>举个栗子</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">windwos（0x1be - 0x1cd）： 80 01 01 00   07 FE FF FF    3F 00 00 00   00 34 80 0C </span><br><span class="line"></span><br><span class="line">	80：表示该分区为活动分区</span><br><span class="line"></span><br><span class="line">	01 01 00：开始磁头&#x2F;开始扇区和开始柱面</span><br><span class="line"></span><br><span class="line">	07 ：文件系统标志位  07表示NTFS文件系统(文件系统标记.jpg)</span><br><span class="line"></span><br><span class="line">	FE FF FF ：结束磁头&#x2F;结束扇区和结束柱面</span><br><span class="line"></span><br><span class="line">	00 00 00 3F ：分区起始的相对扇区号</span><br><span class="line"></span><br><span class="line">	0C 80 34 00：分区总的扇区数</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">linux    （0x1be - 0x1cd）： 00 00 01 40    83 00 81 7C    00 08 00 00    81 47 12 00</span><br><span class="line"></span><br><span class="line">    00 ：表示该分区为非活动分区</span><br><span class="line"></span><br><span class="line">    00 01 40：开始磁头&#x2F;开始扇区和开始柱面</span><br><span class="line"></span><br><span class="line">    83：文件系统标志位  83表示EXT文件系统(文件系统标记.jpg)</span><br><span class="line"></span><br><span class="line">    00 81 7C：结束磁头&#x2F;结束扇区和结束柱面</span><br><span class="line"></span><br><span class="line">    00 08 00 00：分区起始的相对扇区号</span><br><span class="line"></span><br><span class="line">    81 47 12 00：分区总的扇区数</span><br></pre></td></tr></table></figure>
+<p> 从主引导记录的结构可以知道，它仅仅包含一个64个字节的硬盘分区表。由于每个分区信息需要16个字节，所以对于采用MBR型分区结构的硬盘，最多只能识别4个主要分区（Primary partition）。<br>所以对于一个采用此种分区结构的硬盘来说，想要得到4个以上的主要分区是不可能的。这里就需要引出扩展分区（EBR）了。扩展分区也是主要分区的一种，但它与主分区的不同在于理论上可以划分为无数个逻辑分区。扩展分区中逻辑驱动器的引导记录是链式的。每一个逻辑分区都有一个和MBR结构类似的扩展引导记录(EBR)，其分区表的第一项指向该逻辑分区本身的引导扇区，第二项指向下一个逻辑驱动器的EBR，分区表第三、第四项没有用到。<br>系统默认情况下，一般都是只划分一个主分区给系统，剩余的部分全部划入扩展分区。</p>
+<h2 id="结束标志字"><a href="#结束标志字" class="headerlink" title="结束标志字"></a>结束标志字</h2><p>结束标志字55，AA（偏移1FEH- 偏移1FFH）是MBR扇区的最后两个字节，是检验主引导记录是否有效的标志。</p>
+<h2 id="电脑启动过程"><a href="#电脑启动过程" class="headerlink" title="电脑启动过程"></a>电脑启动过程</h2><p>了解了上面的东西过后，不妨来探究一下电脑的启动过程</p>
+<ul>
+<li>系统开机或者重启。</li>
+<li>BIOS 加电自检 ( Power On Self Test – POST )。BIOS执行内存地址为 FFFF:0000H 处的跳转指令，跳转到固化在ROM中的自检程序处，对系统硬件(包括内存)进行检查。</li>
+<li>读取主引导记录(MBR)扇区。当BIOS检查到硬件正常并与 CMOS 中的设置相符后，按照 CMOS 中对启动设备的设置顺序检测可用的启动设备。BIOS将相应启动设备的第一个扇区(也就是MBR扇区)读入内存地址为0000:7C00H 处。</li>
+<li>检查0000:7DFEH-0000:7DFFH(MBR的结束标志位)是否等于 AA55H，若不等于则转去尝试其他启动设备，如果没有启动设备满足要求则显示”NO ROM BASIC”然后死机。</li>
+<li>当检测到有启动设备满足要求后，BIOS将控制权交给相应启动设备。启动设备的MBR将自己复制到0000:0600H处, 然后继续执行。</li>
+<li>在主分区表中搜索标志为活动的分区，也就是检验磁盘分区表DPT的首字节是不是80H。如果检测到80H，则表示该分区为活动分区，将该活动分区的第一个扇区(操作系统引导记录区，Dos Boot Recorder,DBR)读入内存地址 0000:7C00H 处。</li>
+<li>检查0000:7DFEH-0000:7DFFH(DBR的结束标志位)是否等于 AA55H, 若不等于则显示 : “Missing Operating System” 然后停止。</li>
+<li>当检测到有分区满足要求后，MBR将控制权交给相应的活动分区。</li>
+</ul>
+<p>简单的说，就是BIOS -&gt; 硬盘MBR -&gt; 活动分区DBR -&gt; 操作系统这样一个过程。</p>
+<h1 id="2、EBR"><a href="#2、EBR" class="headerlink" title="2、EBR"></a>2、EBR</h1><p>EBR（Extended Boot Record）则是与MBR相对应的一个概念。前边已经讲过，MBR里有一个DPT（Disk Partition Table,磁盘分区表）的区域，它一共是64字节，按每16个字节 作为一个分区表项，它最多只能容纳4个分区。能够在MBR的DPT里进行说明的分区称为主分区。如果我们想分区多于4个的时候，MBR的DPT里就会容纳不下来，于是微软就想出了另一个解决方案，在MBR里，只放不多于三个主分区（通常只放一个）剩下的分区，则由与MBR结构很相像的另一种分区结构（EBR，也就是扩展分区引导记录）里进行说明。一个EBR不够用时，可以增加另一个EBR，如此像一根根链条一样地接下去，直到够用为止。</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/MBR%EF%BC%86EBR/%E7%A3%81%E7%9B%98%E5%88%86%E5%8C%BA.png" class>
+<p>如图，未被浅色边框框柱的部分为主分区，被框住的则为拓展分区</p>
+<h2 id="拓展分区引导记录"><a href="#拓展分区引导记录" class="headerlink" title="拓展分区引导记录"></a>拓展分区引导记录</h2><img data-src="/hexo-test/Information-Security-Study/Others/MBR%EF%BC%86EBR/%E5%9B%9B%E5%88%86%E5%8C%BA.png" class><img data-src="/hexo-test/Information-Security-Study/Others/MBR%EF%BC%86EBR/%E9%93%BE%E6%8E%A5.png" class>
+<p>关于它们之间的链式结构主要体现在所有的拓展分区引导记录里的开始地址都是相对于第一个拓展分区的开始地址而言的相对地址，如：</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/MBR%EF%BC%86EBR/EBR%E4%BE%8B%E5%AD%90.png" class>
+<p>这是一个拓展分区引导记录里的下一个EBR的开始地址，这是一个相对地址，它等于真正的地址-第一个拓展分区EBR的开始地址。或者说，<font color="red">真实地址=相对地址+第一个拓展分区EBR的开始地址</font>，当EBR中出现下图的情况时就表明没有拓展分区了</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/MBR%EF%BC%86EBR/%E5%AE%8C%E7%BB%93.png" class>
+<p>最后附上文件系统标记</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/MBR%EF%BC%86EBR/%E6%96%87%E4%BB%B6%E6%A0%87%E8%AE%B0.png" class>
+<h1 id="闲话"><a href="#闲话" class="headerlink" title="闲话"></a>闲话</h1><p>病毒这玩意着实难搞，什么都得会点，但也正是因为要记的东西太多了，脑子容易宕机，所以才萌生了些Blog的想法，也不全是坏事^_^</p>
+]]></content>
+      <categories>
+        <category>Information Security Study</category>
+        <category>Others</category>
+      </categories>
+      <tags>
+        <tag>Others</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Hexo使用技巧</title>
     <url>/hexo-test/Others/HexoUseskill/</url>
     <content><![CDATA[<p>到头来仔细一想，反正什么都要写，为什么不把Hexo的标签做个记录呢~省的到时候每次用还得去官网扒拉^_^</p>
