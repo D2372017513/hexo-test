@@ -20,27 +20,26 @@
     var CONFIG = {"hostname":"d2372017513.github.io","root":"/hexo-test/","scheme":"Pisces","version":"7.7.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"flat"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="1、各种排序算法的时间复杂度及稳定性 2、计算机处理的最小单位为“位”3、传输层作用传输层有几大功能：可靠传输（即差错控制）、流量控制，滑动窗口，拥塞控制 1）可靠传输：TCP 使用超时重传来实现可靠传输：如果一个已经发送的报文段在超时时间内没有收到确认，那么就重传这个报文段。 2）滑动窗口：窗口是缓存的一部分，用来暂时存放字节流。发送方和接收方各有一个窗口，接收方通过 TCP 报文段中的窗口字段">
+  <meta name="description" content="1、各种排序算法的时间复杂度及稳定性">
 <meta property="og:type" content="article">
 <meta property="og:title" content="牛客网错题解析">
-<meta property="og:url" content="http://d2372017513.github.io/hexo-test/uncategorized/%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90/">
+<meta property="og:url" content="http://d2372017513.github.io/hexo-test/Others/%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90/">
 <meta property="og:site_name" content="半云半雾">
-<meta property="og:description" content="1、各种排序算法的时间复杂度及稳定性 2、计算机处理的最小单位为“位”3、传输层作用传输层有几大功能：可靠传输（即差错控制）、流量控制，滑动窗口，拥塞控制 1）可靠传输：TCP 使用超时重传来实现可靠传输：如果一个已经发送的报文段在超时时间内没有收到确认，那么就重传这个报文段。 2）滑动窗口：窗口是缓存的一部分，用来暂时存放字节流。发送方和接收方各有一个窗口，接收方通过 TCP 报文段中的窗口字段">
+<meta property="og:description" content="1、各种排序算法的时间复杂度及稳定性">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="d:%5CBlog%5Csource%5C_posts%5C%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90.assets%5C242025553_1550562336084_DF5F4A0D06D13185C873BE851CBF7E9F">
-<meta property="og:image" content="d:%5CBlog%5Csource%5C_posts%5C%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90.assets%5C165701207_1594036429202_25ACC4616B94DB229A79C4363F90E97E">
-<meta property="og:image" content="d:%5CBlog%5Csource%5C_posts%5C%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90.assets%5C300975041_1561710274229_71F55929306FEE7C05F70001A5B2C418">
-<meta property="og:image" content="d:%5CBlog%5Csource%5C_posts%5C%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90.assets%5C5811072_1494251468853_E45441B732E52ECEC8F0C56142EB62B4">
-<meta property="og:image" content="d:%5CBlog%5Csource%5C_posts%5C%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90.assets%5C855992_1449580151970_1D869AC8E7A34478AD50E9AC7E3600EF">
-<meta property="article:published_time" content="2021-01-03T05:12:28.115Z">
-<meta property="article:modified_time" content="2021-01-14T07:50:38.386Z">
+<meta property="og:image" content="https://i.loli.net/2021/01/23/eTNXsMx9DWCpk56.png">
+<meta property="og:image" content="https://i.loli.net/2021/01/23/FNOhR4726UqoigX.png">
+<meta property="og:image" content="https://i.loli.net/2021/01/23/sqDC8oQak9ndvEY.jpg">
+<meta property="og:image" content="https://i.loli.net/2021/01/23/3I7oqwW1N8cn5jp.png">
+<meta property="og:image" content="https://i.loli.net/2021/01/23/n4M62U8yFN1I5vK.jpg">
+<meta property="article:published_time" content="2021-01-22T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-01-23T08:24:02.710Z">
 <meta property="article:author" content="绯狱丸丶">
-<meta property="article:tag" content="C#">
-<meta property="article:tag" content="C++">
+<meta property="article:tag" content="Others">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="d:%5CBlog%5Csource%5C_posts%5C%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90.assets%5C242025553_1550562336084_DF5F4A0D06D13185C873BE851CBF7E9F">
+<meta name="twitter:image" content="https://i.loli.net/2021/01/23/eTNXsMx9DWCpk56.png">
 
-<link rel="canonical" href="http://d2372017513.github.io/hexo-test/uncategorized/%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90/">
+<link rel="canonical" href="http://d2372017513.github.io/hexo-test/Others/%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90/">
 
 
 <script id="page-configurations">
@@ -129,12 +128,12 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/hexo-test/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签<span class="badge">7</span></a>
+    <a href="/hexo-test/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签<span class="badge">11</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
 
-    <a href="/hexo-test/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类<span class="badge">9</span></a>
+    <a href="/hexo-test/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类<span class="badge">11</span></a>
 
   </li>
         <li class="menu-item menu-item-archives">
@@ -202,7 +201,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://d2372017513.github.io/hexo-test/uncategorized/%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90/">
+    <link itemprop="mainEntityOfPage" href="http://d2372017513.github.io/hexo-test/Others/%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/hexo-test/images/ouba.jpg">
@@ -224,16 +223,19 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2021-01-03 13:12:28" itemprop="dateCreated datePublished" datetime="2021-01-03T13:12:28+08:00">2021-01-03</time>
+              <time title="创建时间：2021-01-23 00:00:00 / 修改时间：16:24:02" itemprop="dateCreated datePublished" datetime="2021-01-23T00:00:00+08:00">2021-01-23</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-01-14 15:50:38" itemprop="dateModified" datetime="2021-01-14T15:50:38+08:00">2021-01-14</time>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
               </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo-test/categories/Others/" itemprop="url" rel="index"><span itemprop="name">Others</span></a>
+                </span>
+            </span>
 
           <br>
             <span class="post-meta-item" title="本文字数">
@@ -260,16 +262,18 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h4 id="1、各种排序算法的时间复杂度及稳定性"><a href="#1、各种排序算法的时间复杂度及稳定性" class="headerlink" title="1、各种排序算法的时间复杂度及稳定性"></a>1、各种排序算法的时间复杂度及稳定性</h4><p><img data-src="D:%5CBlog%5Csource%5C_posts%5C%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90.assets%5C242025553_1550562336084_DF5F4A0D06D13185C873BE851CBF7E9F" alt></p>
+        <h4 id="1、各种排序算法的时间复杂度及稳定性"><a href="#1、各种排序算法的时间复杂度及稳定性" class="headerlink" title="1、各种排序算法的时间复杂度及稳定性"></a>1、各种排序算法的时间复杂度及稳定性</h4><p><img data-src="https://i.loli.net/2021/01/23/eTNXsMx9DWCpk56.png" alt></p>
+<a id="more"></a>
+
 <h4 id="2、计算机处理的最小单位为“位”"><a href="#2、计算机处理的最小单位为“位”" class="headerlink" title="2、计算机处理的最小单位为“位”"></a>2、计算机处理的最小单位为“位”</h4><h4 id="3、传输层作用"><a href="#3、传输层作用" class="headerlink" title="3、传输层作用"></a>3、传输层作用</h4><p>传输层有几大功能：<strong>可靠传输（即差错控制）、流量控制，滑动窗口，拥塞控制</strong></p>
 <p><strong>1）可靠传输</strong>：TCP 使用超时重传来实现可靠传输：如果一个已经发送的报文段在超时时间内没有收到确认，那么就重传这个报文段。</p>
 <p><strong>2）滑动窗口</strong>：窗口是缓存的一部分，用来暂时存放字节流。发送方和接收方各有一个窗口，接收方通过 TCP 报文段中的窗口字段告诉发送方自己的窗口大小，发送方根据这个值和其它信息设置自己的窗口大小。接收窗口只会对窗口内最后一个按序到达的字节进行确认，这样发送方得到一个字节的确认之后，就知道这个字节之前的所有字节都已经被接收。<strong>滑动窗口可以用于控制发送端发送的速率，即接受方如果还没有接受，发送方就不能持续发送！</strong></p>
 <p><strong>3）流量控制</strong>：通过滑动窗口实现，流量控制是为了控制发送方发送速率，保证接收方来得及接收。接收方发送的确认报文中的窗口字段可以用来控制发送方窗口大小，从而影响发送方的发送速率。将窗口字段设置为0，则发送方不能发送数据。</p>
 <p><strong>4）拥塞控制：</strong>如果网络出现拥塞，分组将会丢失，此时发送方会继续重传，从而导致网络拥塞程度更高。因此当出现拥塞时，应当控制发送方的速率。这一点和流量控制很像，但是出发点不同。流量控制是为了让接收方能来得及接收，而拥塞控制是为了降低整个网络的拥塞程度。</p>
 <p>TCP 主要通过四个算法来进行拥塞控制：<strong>慢开始、拥塞避免、快重传、快恢复。</strong></p>
-<p><img data-src="D:%5CBlog%5Csource%5C_posts%5C%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90.assets%5C165701207_1594036429202_25ACC4616B94DB229A79C4363F90E97E" alt="img"></p>
+<p><img data-src="https://i.loli.net/2021/01/23/FNOhR4726UqoigX.png" alt="img"></p>
 <h4 id="4、OSI-模型"><a href="#4、OSI-模型" class="headerlink" title="4、OSI 模型"></a>4、OSI 模型</h4><p><strong>开放式系统互联通信参考模型</strong>（英语：Open System Interconnection Reference Model，缩写为 OSI）</p>
-<p><img data-src="D:%5CBlog%5Csource%5C_posts%5C%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90.assets%5C300975041_1561710274229_71F55929306FEE7C05F70001A5B2C418" alt="img"></p>
+<p><img data-src="https://i.loli.net/2021/01/23/sqDC8oQak9ndvEY.jpg" alt="img"></p>
 <h4 id="5、共享式和交换式局域网"><a href="#5、共享式和交换式局域网" class="headerlink" title="5、共享式和交换式局域网"></a>5、共享式和交换式局域网</h4><p>利用集线器连接的局域网叫共享式局域网，利用交换机连接的局域网叫交换式局域网。</p>
 <p>以太网中采用的工作方式是CSMA／CD（载波监听多路访问／冲突检测）</p>
 <p>共享和交换这两个概念。打个比方，10个车道的马路，车辆在无序的状态下抢道或占道通行，容易发生交通堵塞和反向行驶的车辆对撞，使通行能力降低，共享式网络。为了避免这种情况，在道路上标清行车线，保证每一辆车各行其道、互不干扰，是交换式网络。而交换式网络则避免了共享式网络的不足，交换技术的作用便是根据所传递信息包的目的地址，将每一信息包独立地从端口送至目的端口，避免了与其它端口发生碰撞，提高了网络的实际吞吐量。</p>
@@ -281,7 +285,7 @@
 <li><strong>优先数调度算法</strong>：根据进程优先数（静态优先数+动态优先数），把CPU分配给最高的进程。</li>
 <li><strong>循环轮转调度算法</strong>：把所有就绪进程按先进先出的原则排成队列，新来进程加入队列末尾，进程以时间片为单位轮流使用CPU，刚刚运行一个时间片的进程排到队列末尾，等候下一轮运行。</li>
 </ul>
-<h4 id="7、循环队列的相关条件和公式"><a href="#7、循环队列的相关条件和公式" class="headerlink" title="7、循环队列的相关条件和公式"></a>7、循环队列的相关条件和公式</h4><p><img data-src="D:%5CBlog%5Csource%5C_posts%5C%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90.assets%5C5811072_1494251468853_E45441B732E52ECEC8F0C56142EB62B4" alt="img"></p>
+<h4 id="7、循环队列的相关条件和公式"><a href="#7、循环队列的相关条件和公式" class="headerlink" title="7、循环队列的相关条件和公式"></a>7、循环队列的相关条件和公式</h4><p><img data-src="https://i.loli.net/2021/01/23/3I7oqwW1N8cn5jp.png" alt="img"></p>
 <h4 id="8、预防死锁的方法"><a href="#8、预防死锁的方法" class="headerlink" title="8、预防死锁的方法"></a>8、预防死锁的方法</h4><p><strong>资源一次性分配</strong>：破坏“请求与保持”条件；</p>
 <p><strong>可剥夺资源：</strong>破坏“不可剥夺”条件；</p>
 <p><strong>资源有序分配：</strong>破坏“循环等待”条件；</p>
@@ -329,7 +333,7 @@
 <li>根据根节点在中序序列中划分出二叉树的左、右子树包含哪些节点。然后根据左右子树节点在后序序列中的次序可以确定子树的根节点，即回到步骤 1.</li>
 <li>如此重复上述步骤，知道每棵子树仅有一个节点为止，如下图所示。</li>
 </ol>
-<p><img data-src="D:%5CBlog%5Csource%5C_posts%5C%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90.assets%5C855992_1449580151970_1D869AC8E7A34478AD50E9AC7E3600EF" alt="img"></p>
+<p><img data-src="https://i.loli.net/2021/01/23/n4M62U8yFN1I5vK.jpg" alt="img"></p>
 <p> 从而前序遍历结果为： <strong>EACBDGF</strong></p>
 <h4 id="16、方法重写的规则"><a href="#16、方法重写的规则" class="headerlink" title="16、方法重写的规则"></a>16、方法重写的规则</h4><p><strong>方法的重写（override）两同两小一大原则</strong>：</p>
 <p>方法名相同，参数类型相同</p>
@@ -351,7 +355,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="http://d2372017513.github.io/hexo-test/uncategorized/%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90/" title="牛客网错题解析">http://d2372017513.github.io/hexo-test/uncategorized/牛客网错题解析/</a>
+    <a href="http://d2372017513.github.io/hexo-test/Others/%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90/" title="牛客网错题解析">http://d2372017513.github.io/hexo-test/Others/牛客网错题解析/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -361,6 +365,9 @@
 
 
       <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/hexo-test/tags/Others/" rel="tag"># Others</a>
+          </div>
 
         
 
@@ -368,12 +375,12 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/hexo-test/uncategorized/Java%20%E4%B8%AD%E5%B8%B8%E8%A7%81%E7%9A%84%E5%AE%B9%E5%99%A8/" rel="prev" title="Java 中常见的容器">
-      <i class="fa fa-chevron-left"></i> Java 中常见的容器
+    <a href="/hexo-test/Projects/%E7%A7%92%E6%9D%80%E7%B3%BB%E7%BB%9F/" rel="prev" title="秒杀系统">
+      <i class="fa fa-chevron-left"></i> 秒杀系统
     </a></div>
       <div class="post-nav-item">
-    <a href="/hexo-test/uncategorized/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E7%AC%94%E8%AE%B0/" rel="next" title="数据结构笔记">
-      数据结构笔记 <i class="fa fa-chevron-right"></i>
+    <a href="/hexo-test/Information-Security-Study/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E7%AC%94%E8%AE%B0/" rel="next" title="数据结构">
+      数据结构 <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -457,13 +464,13 @@
       <div class="site-state-item site-state-categories">
             <a href="/hexo-test/categories/">
           
-        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-count">11</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/hexo-test/tags/">
           
-        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-count">11</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
