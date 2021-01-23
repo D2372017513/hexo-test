@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/hexo-test/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/hexo-test/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/hexo-test/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/hexo-test/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/hexo-test/css/main.css">
+
+
+<link rel="stylesheet" href="/hexo-test/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"d2372017513.github.io","root":"/hexo-test/","scheme":"Pisces","version":"7.7.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"flat"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="1、各种排序算法的时间复杂度及稳定性 2、计算机处理的最小单位为“位”3、传输层作用传输层有几大功能：可靠传输（即差错控制）、流量控制，滑动窗口，拥塞控制 1）可靠传输：TCP 使用超时重传来实现可靠传输：如果一个已经发送的报文段在超时时间内没有收到确认，那么就重传这个报文段。 2）滑动窗口：窗口是缓存的一部分，用来暂时存放字节流。发送方和接收方各有一个窗口，接收方通过 TCP 报文段中的窗口字段">
+<meta property="og:type" content="article">
+<meta property="og:title" content="牛客网错题解析">
+<meta property="og:url" content="http://d2372017513.github.io/hexo-test/uncategorized/%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90/">
+<meta property="og:site_name" content="半云半雾">
+<meta property="og:description" content="1、各种排序算法的时间复杂度及稳定性 2、计算机处理的最小单位为“位”3、传输层作用传输层有几大功能：可靠传输（即差错控制）、流量控制，滑动窗口，拥塞控制 1）可靠传输：TCP 使用超时重传来实现可靠传输：如果一个已经发送的报文段在超时时间内没有收到确认，那么就重传这个报文段。 2）滑动窗口：窗口是缓存的一部分，用来暂时存放字节流。发送方和接收方各有一个窗口，接收方通过 TCP 报文段中的窗口字段">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="d:%5CBlog%5Csource%5C_posts%5C%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90.assets%5C242025553_1550562336084_DF5F4A0D06D13185C873BE851CBF7E9F">
+<meta property="og:image" content="d:%5CBlog%5Csource%5C_posts%5C%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90.assets%5C165701207_1594036429202_25ACC4616B94DB229A79C4363F90E97E">
+<meta property="og:image" content="d:%5CBlog%5Csource%5C_posts%5C%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90.assets%5C300975041_1561710274229_71F55929306FEE7C05F70001A5B2C418">
+<meta property="og:image" content="d:%5CBlog%5Csource%5C_posts%5C%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90.assets%5C5811072_1494251468853_E45441B732E52ECEC8F0C56142EB62B4">
+<meta property="og:image" content="d:%5CBlog%5Csource%5C_posts%5C%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90.assets%5C855992_1449580151970_1D869AC8E7A34478AD50E9AC7E3600EF">
+<meta property="article:published_time" content="2021-01-03T05:12:28.115Z">
+<meta property="article:modified_time" content="2021-01-14T07:50:38.386Z">
+<meta property="article:author" content="绯狱丸丶">
+<meta property="article:tag" content="C#">
+<meta property="article:tag" content="C++">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="d:%5CBlog%5Csource%5C_posts%5C%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90.assets%5C242025553_1550562336084_DF5F4A0D06D13185C873BE851CBF7E9F">
+
+<link rel="canonical" href="http://d2372017513.github.io/hexo-test/uncategorized/%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true
+  };
+</script>
+
+  <title>牛客网错题解析 | 半云半雾</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <div>
+      <a href="/hexo-test/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">半云半雾</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">测试ing</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/hexo-test/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/hexo-test/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签<span class="badge">7</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/hexo-test/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类<span class="badge">9</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/hexo-test/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档<span class="badge">16</span></a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/hexo-test/sitemap.xml" rel="section"><i class="fa fa-fw fa-sitemap"></i>站点地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/d2372017513" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://d2372017513.github.io/hexo-test/uncategorized/%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo-test/images/ouba.jpg">
+      <meta itemprop="name" content="绯狱丸丶">
+      <meta itemprop="description" content="DHR‘s Blog">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="半云半雾">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          牛客网错题解析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-01-03 13:12:28" itemprop="dateCreated datePublished" datetime="2021-01-03T13:12:28+08:00">2021-01-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-01-14 15:50:38" itemprop="dateModified" datetime="2021-01-14T15:50:38+08:00">2021-01-14</time>
+              </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.6k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h4 id="1、各种排序算法的时间复杂度及稳定性"><a href="#1、各种排序算法的时间复杂度及稳定性" class="headerlink" title="1、各种排序算法的时间复杂度及稳定性"></a>1、各种排序算法的时间复杂度及稳定性</h4><p><img data-src="D:%5CBlog%5Csource%5C_posts%5C%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90.assets%5C242025553_1550562336084_DF5F4A0D06D13185C873BE851CBF7E9F" alt></p>
+<h4 id="2、计算机处理的最小单位为“位”"><a href="#2、计算机处理的最小单位为“位”" class="headerlink" title="2、计算机处理的最小单位为“位”"></a>2、计算机处理的最小单位为“位”</h4><h4 id="3、传输层作用"><a href="#3、传输层作用" class="headerlink" title="3、传输层作用"></a>3、传输层作用</h4><p>传输层有几大功能：<strong>可靠传输（即差错控制）、流量控制，滑动窗口，拥塞控制</strong></p>
+<p><strong>1）可靠传输</strong>：TCP 使用超时重传来实现可靠传输：如果一个已经发送的报文段在超时时间内没有收到确认，那么就重传这个报文段。</p>
+<p><strong>2）滑动窗口</strong>：窗口是缓存的一部分，用来暂时存放字节流。发送方和接收方各有一个窗口，接收方通过 TCP 报文段中的窗口字段告诉发送方自己的窗口大小，发送方根据这个值和其它信息设置自己的窗口大小。接收窗口只会对窗口内最后一个按序到达的字节进行确认，这样发送方得到一个字节的确认之后，就知道这个字节之前的所有字节都已经被接收。<strong>滑动窗口可以用于控制发送端发送的速率，即接受方如果还没有接受，发送方就不能持续发送！</strong></p>
+<p><strong>3）流量控制</strong>：通过滑动窗口实现，流量控制是为了控制发送方发送速率，保证接收方来得及接收。接收方发送的确认报文中的窗口字段可以用来控制发送方窗口大小，从而影响发送方的发送速率。将窗口字段设置为0，则发送方不能发送数据。</p>
+<p><strong>4）拥塞控制：</strong>如果网络出现拥塞，分组将会丢失，此时发送方会继续重传，从而导致网络拥塞程度更高。因此当出现拥塞时，应当控制发送方的速率。这一点和流量控制很像，但是出发点不同。流量控制是为了让接收方能来得及接收，而拥塞控制是为了降低整个网络的拥塞程度。</p>
+<p>TCP 主要通过四个算法来进行拥塞控制：<strong>慢开始、拥塞避免、快重传、快恢复。</strong></p>
+<p><img data-src="D:%5CBlog%5Csource%5C_posts%5C%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90.assets%5C165701207_1594036429202_25ACC4616B94DB229A79C4363F90E97E" alt="img"></p>
+<h4 id="4、OSI-模型"><a href="#4、OSI-模型" class="headerlink" title="4、OSI 模型"></a>4、OSI 模型</h4><p><strong>开放式系统互联通信参考模型</strong>（英语：Open System Interconnection Reference Model，缩写为 OSI）</p>
+<p><img data-src="D:%5CBlog%5Csource%5C_posts%5C%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90.assets%5C300975041_1561710274229_71F55929306FEE7C05F70001A5B2C418" alt="img"></p>
+<h4 id="5、共享式和交换式局域网"><a href="#5、共享式和交换式局域网" class="headerlink" title="5、共享式和交换式局域网"></a>5、共享式和交换式局域网</h4><p>利用集线器连接的局域网叫共享式局域网，利用交换机连接的局域网叫交换式局域网。</p>
+<p>以太网中采用的工作方式是CSMA／CD（载波监听多路访问／冲突检测）</p>
+<p>共享和交换这两个概念。打个比方，10个车道的马路，车辆在无序的状态下抢道或占道通行，容易发生交通堵塞和反向行驶的车辆对撞，使通行能力降低，共享式网络。为了避免这种情况，在道路上标清行车线，保证每一辆车各行其道、互不干扰，是交换式网络。而交换式网络则避免了共享式网络的不足，交换技术的作用便是根据所传递信息包的目的地址，将每一信息包独立地从端口送至目的端口，避免了与其它端口发生碰撞，提高了网络的实际吞吐量。</p>
+<p>共享式以太网存在的主要问题是所有用户共享带宽，每个用户的实际可用带宽随网络用户数的增加而递减。这是因为当信息繁忙时，多个用户都可能同进“争用”一个信道，而一个通道在某一时刻只充许一个用户占用，所以大量的经常处于监测等待状态，致使信号在传送时产生抖动、停滞或失真，严重影响了网络的性能。交换式以太网中，交换机供给每个用户专用的信息通道，除非两个源端口企图将信息同时发往同一目的端口，否则各个源端口与各自的目的端口之间可同时进行通信而不发生冲突。交换机只是在工作方式上与集线器不同，其它的连接方式、速度选择等则与集线器基本相同</p>
+<h4 id="6、主要的作业调度算法"><a href="#6、主要的作业调度算法" class="headerlink" title="6、主要的作业调度算法"></a>6、主要的作业调度算法</h4><ul>
+<li><strong>先来先服务调度</strong>：按照作业进入系统的时间先后挑选作业，先进入系统的作业优先被运行。</li>
+<li><strong>短作业优先调度</strong>：参考运行时间，选取运行时间最短的作业投入运行。</li>
+<li><strong>响应比高者优先调度</strong>：计算每个作业的响应比（响应时间/运行时间），选择响应比最高的作业优先投入运行。</li>
+<li><strong>优先数调度算法</strong>：根据进程优先数（静态优先数+动态优先数），把CPU分配给最高的进程。</li>
+<li><strong>循环轮转调度算法</strong>：把所有就绪进程按先进先出的原则排成队列，新来进程加入队列末尾，进程以时间片为单位轮流使用CPU，刚刚运行一个时间片的进程排到队列末尾，等候下一轮运行。</li>
+</ul>
+<h4 id="7、循环队列的相关条件和公式"><a href="#7、循环队列的相关条件和公式" class="headerlink" title="7、循环队列的相关条件和公式"></a>7、循环队列的相关条件和公式</h4><p><img data-src="D:%5CBlog%5Csource%5C_posts%5C%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90.assets%5C5811072_1494251468853_E45441B732E52ECEC8F0C56142EB62B4" alt="img"></p>
+<h4 id="8、预防死锁的方法"><a href="#8、预防死锁的方法" class="headerlink" title="8、预防死锁的方法"></a>8、预防死锁的方法</h4><p><strong>资源一次性分配</strong>：破坏“请求与保持”条件；</p>
+<p><strong>可剥夺资源：</strong>破坏“不可剥夺”条件；</p>
+<p><strong>资源有序分配：</strong>破坏“循环等待”条件；</p>
+<h4 id="9、程序状态字PSW（Program-Status-Word）"><a href="#9、程序状态字PSW（Program-Status-Word）" class="headerlink" title="9、程序状态字PSW（Program Status Word）"></a>9、程序状态字PSW（Program Status Word）</h4><p>包括的状态位有<strong>进位标志位（CF）</strong>、<strong>结果为零标志位（ZF）</strong>、<strong>符号标志位（SF）</strong>、<strong>溢出标志位（OF）</strong>、<strong>陷阱标志位（TF）</strong>、<strong>中断使能（中断屏蔽）标志位（IF）</strong>、<strong>虚拟中断标志位（VIF）</strong>、<strong>虚拟中断待决标志位（VIP）</strong>、<strong>I0特权级别（IOPL）</strong>。</p>
+<p>通常的状态代码：CPU的工作状态码——指明管态还是目态，用来说明当前在CPU上执行的是操作系统还是一般用户，从而决定其是否可以使用特权指令或拥有其它的特殊权力。条件码——反映指令执行后的结果特征。中断屏蔽码——指出是否允许中断。</p>
+<h4 id="10、3C"><a href="#10、3C" class="headerlink" title="10、3C"></a>10、3C</h4><p>所谓“3C产品”，就是计算机（Computer）、通信（Communication）和消费类电子产品（Consumer Electronics）三者结合，亦称“信息家电”。由于3C产品的体积一般都不大，所以往往在中间加一个“小”字，故往往统称为“3C小家电”。</p>
+<h4 id="11、java标识符命名规则"><a href="#11、java标识符命名规则" class="headerlink" title="11、java标识符命名规则"></a>11、java标识符命名规则</h4><ul>
+<li>Java 标识符有如下命名规则： <ul>
+<li>由26个英文字母大小写，数字：0-9 符号：_ $ 组成</li>
+<li>标识符应以字母、_ 、$开头。</li>
+<li>标识符不能是关键字。</li>
+</ul>
+</li>
+<li>Java中严格区分大小写 </li>
+</ul>
+<h4 id="12、try-catch"><a href="#12、try-catch" class="headerlink" title="12、try - catch"></a>12、try - catch</h4><p>catch可以省略，try的形式有三种：</p>
+<p>try-catch</p>
+<p>try-finally</p>
+<p>try-catch-finally</p>
+<p>但<strong>catch和finally语句不能同时省略！</strong></p>
+<h4 id="13、关于数组复制效率问题"><a href="#13、关于数组复制效率问题" class="headerlink" title="13、关于数组复制效率问题"></a>13、关于数组复制效率问题</h4><ol>
+<li>System.arraycopy()：native方法+JVM手写函数，在JVM里预写好速度最快</li>
+<li>clone()：native方法，但并未手写，需要JNI转换，速度其次</li>
+<li>Arrays.copyof()：本质是调用1的方法</li>
+<li>for()：全是深复制，并且不是封装方法，最慢情有可原</li>
+</ol>
+<h4 id="14、四种引用类型"><a href="#14、四种引用类型" class="headerlink" title="14、四种引用类型"></a>14、四种引用类型</h4><p>JDK1.2 之前，一个对象只有“已被引用”和”未被引用”两种状态，这将无法描述某些特殊情况下的对象，比如，当内存充足时需要保留，而内存紧张时才需要被抛弃的一类对象。</p>
+<p>所以在 JDK.1.2 之后，Java 对引用的概念进行了扩充，将引用分为了：强引用（Strong Reference）、软引用（Soft Reference）、弱引用（Weak Reference）、虚引用（Phantom Reference）4 种，这 4 种引用的强度依次减弱。</p>
+<p><strong>一，强引用</strong></p>
+<p>Object obj = new Object(); //只要obj还指向Object对象，Object对象就不会被回收 obj = null; //手动置null</p>
+<p>只要强引用存在，垃圾回收器将永远不会回收被引用的对象，哪怕内存不足时，JVM也会直接抛出OutOfMemoryError，不会去回收。如果想中断强引用与对象之间的联系，可以显示的将强引用赋值为null，这样一来，JVM就可以适时的回收对象了</p>
+<p><strong>二，软引用</strong></p>
+<p>软引用是用来描述一些非必需但仍有用的对象。<strong>在内存足够的时候，软引用对象不会被回收，只有在内存不足时，系统则会回收软引用对象，如果回收了软引用对象之后仍然没有足够的内存，才会抛出内存溢出异常</strong>。这种特性常常被用来实现缓存技术，比如网页缓存，图片缓存等。</p>
+<p>在 JDK1.2 之后，用java.lang.ref.SoftReference类来表示软引用。</p>
+<p><strong>三，弱引用</strong></p>
+<p>弱引用的引用强度比软引用要更弱一些，<strong>无论内存是否足够，只要 JVM 开始进行垃圾回收，那些被弱引用关联的对象都会被回收</strong>。在 JDK1.2 之后，用 java.lang.ref.WeakReference 来表示弱引用。</p>
+<p><strong>四，虚引用</strong></p>
+<p>虚引用是最弱的一种引用关系，如果一个对象仅持有虚引用，那么它就和没有任何引用一样，它随时可能会被回收，在 JDK1.2 之后，用 PhantomReference 类来表示，通过查看这个类的源码，发现它只有一个构造函数和一个 get() 方法，而且它的 get() 方法仅仅是返回一个null，也就是说将永远无法通过虚引用来获取对象，虚引用必须要和 ReferenceQueue 引用队列一起使用。</p>
+<h4 id="15、树的遍历例题"><a href="#15、树的遍历例题" class="headerlink" title="15、树的遍历例题"></a>15、树的遍历例题</h4><p>某二叉树中序序列为A,B,C,D,E,F,G,后序序列为B,D,C,A,F,G,E则前序序列是()</p>
+<p>  由后序序列和中序序列可以唯一确定一棵二叉树，这是由两种遍历序列的特点所决定的。</p>
+<p>​    后序序列的最后一个节点是根节点，中序序列中根节点将序列分为左右子树的中序序列；在后序序列中找到左右子树的序列，其最后一个节点是左右子树的根节点，如此递归就能确定整个二叉树的形态。</p>
+<p>​    其算法实现步骤如下：</p>
+<ol>
+<li>根据后序序***定树的根节点</li>
+<li>根据根节点在中序序列中划分出二叉树的左、右子树包含哪些节点。然后根据左右子树节点在后序序列中的次序可以确定子树的根节点，即回到步骤 1.</li>
+<li>如此重复上述步骤，知道每棵子树仅有一个节点为止，如下图所示。</li>
+</ol>
+<p><img data-src="D:%5CBlog%5Csource%5C_posts%5C%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90.assets%5C855992_1449580151970_1D869AC8E7A34478AD50E9AC7E3600EF" alt="img"></p>
+<p> 从而前序遍历结果为： <strong>EACBDGF</strong></p>
+<h4 id="16、方法重写的规则"><a href="#16、方法重写的规则" class="headerlink" title="16、方法重写的规则"></a>16、方法重写的规则</h4><p><strong>方法的重写（override）两同两小一大原则</strong>：</p>
+<p>方法名相同，参数类型相同</p>
+<p>子类返回类型小于等于父类方法返回类型，</p>
+<p>子类抛出异常小于等于父类方法抛出异常，</p>
+<p>子类访问权限大于等于父类方法访问权限。</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>绯狱丸丶
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://d2372017513.github.io/hexo-test/uncategorized/%E7%89%9B%E5%AE%A2%E7%BD%91%E9%94%99%E9%A2%98%E8%A7%A3%E6%9E%90/" title="牛客网错题解析">http://d2372017513.github.io/hexo-test/uncategorized/牛客网错题解析/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/hexo-test/uncategorized/Java%20%E4%B8%AD%E5%B8%B8%E8%A7%81%E7%9A%84%E5%AE%B9%E5%99%A8/" rel="prev" title="Java 中常见的容器">
+      <i class="fa fa-chevron-left"></i> Java 中常见的容器
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/hexo-test/uncategorized/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E7%AC%94%E8%AE%B0/" rel="next" title="数据结构笔记">
+      数据结构笔记 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#1、各种排序算法的时间复杂度及稳定性"><span class="nav-number">1.</span> <span class="nav-text">1、各种排序算法的时间复杂度及稳定性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2、计算机处理的最小单位为“位”"><span class="nav-number">2.</span> <span class="nav-text">2、计算机处理的最小单位为“位”</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3、传输层作用"><span class="nav-number">3.</span> <span class="nav-text">3、传输层作用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4、OSI-模型"><span class="nav-number">4.</span> <span class="nav-text">4、OSI 模型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5、共享式和交换式局域网"><span class="nav-number">5.</span> <span class="nav-text">5、共享式和交换式局域网</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6、主要的作业调度算法"><span class="nav-number">6.</span> <span class="nav-text">6、主要的作业调度算法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#7、循环队列的相关条件和公式"><span class="nav-number">7.</span> <span class="nav-text">7、循环队列的相关条件和公式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#8、预防死锁的方法"><span class="nav-number">8.</span> <span class="nav-text">8、预防死锁的方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#9、程序状态字PSW（Program-Status-Word）"><span class="nav-number">9.</span> <span class="nav-text">9、程序状态字PSW（Program Status Word）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#10、3C"><span class="nav-number">10.</span> <span class="nav-text">10、3C</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#11、java标识符命名规则"><span class="nav-number">11.</span> <span class="nav-text">11、java标识符命名规则</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#12、try-catch"><span class="nav-number">12.</span> <span class="nav-text">12、try - catch</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#13、关于数组复制效率问题"><span class="nav-number">13.</span> <span class="nav-text">13、关于数组复制效率问题</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#14、四种引用类型"><span class="nav-number">14.</span> <span class="nav-text">14、四种引用类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#15、树的遍历例题"><span class="nav-number">15.</span> <span class="nav-text">15、树的遍历例题</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#16、方法重写的规则"><span class="nav-number">16.</span> <span class="nav-text">16、方法重写的规则</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="绯狱丸丶"
+      src="/hexo-test/images/ouba.jpg">
+  <p class="site-author-name" itemprop="name">绯狱丸丶</p>
+  <div class="site-description" itemprop="description">DHR‘s Blog</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/hexo-test/archives/">
+        
+          <span class="site-state-item-count">16</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/hexo-test/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/hexo-test/tags/">
+          
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/d2372017513" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;d2372017513" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/hexo-test/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">绯狱丸丶</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">143k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:10</span>
+</div>
+  <div class="theme-info">主题 – <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.7.2
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/hexo-test/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+  <script src="/hexo-test/lib/velocity/velocity.min.js"></script>
+  <script src="/hexo-test/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/hexo-test/js/utils.js"></script>
+
+<script src="/hexo-test/js/motion.js"></script>
+
+
+<script src="/hexo-test/js/schemes/pisces.js"></script>
+
+
+<script src="/hexo-test/js/next-boot.js"></script>
+
+<script src="/hexo-test/js/bookmark.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/hexo-test/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script src="/hexo-test/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","model":{"jsonPath":"/hexo-test/live2dw/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true},"log":false,"tagMode":false});</script></body>
+</html>
+<!-- 雪花特效 -->
+<script type="text/javascript" src="/hexo-test/js/snow.js"></script>
+<!-- 切换页面标题变化-->
+<script type = "text/javascript" src = "/hexo-test/js/FunnyTile.js"></script>
