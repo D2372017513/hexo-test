@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/hexo-test/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/hexo-test/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/hexo-test/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/hexo-test/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/hexo-test/css/main.css">
+
+
+<link rel="stylesheet" href="/hexo-test/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"d2372017513.github.io","root":"/hexo-test/","scheme":"Pisces","version":"7.7.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"flat"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="记一下在 Spring + MyBatis 整合中遇到的问题以及解决方案">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在Spring + MyBatis整合中遇到的问题">
+<meta property="og:url" content="http://d2372017513.github.io/hexo-test/Information-Security-Study/Code-Language/Java/%E5%9C%A8Spring-MyBatis%E6%95%B4%E5%90%88%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/">
+<meta property="og:site_name" content="半云半雾">
+<meta property="og:description" content="记一下在 Spring + MyBatis 整合中遇到的问题以及解决方案">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-01-23T11:04:58.000Z">
+<meta property="article:modified_time" content="2021-01-23T12:16:57.350Z">
+<meta property="article:author" content="绯狱丸丶">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="Exceptions">
+<meta property="article:tag" content="Spring+MyBatis">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://d2372017513.github.io/hexo-test/Information-Security-Study/Code-Language/Java/%E5%9C%A8Spring-MyBatis%E6%95%B4%E5%90%88%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true
+  };
+</script>
+
+  <title>在Spring + MyBatis整合中遇到的问题 | 半云半雾</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <div>
+      <a href="/hexo-test/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">半云半雾</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">测试ing</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/hexo-test/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/hexo-test/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签<span class="badge">12</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/hexo-test/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类<span class="badge">11</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/hexo-test/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档<span class="badge">17</span></a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/hexo-test/sitemap.xml" rel="section"><i class="fa fa-fw fa-sitemap"></i>站点地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/d2372017513" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://d2372017513.github.io/hexo-test/Information-Security-Study/Code-Language/Java/%E5%9C%A8Spring-MyBatis%E6%95%B4%E5%90%88%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/hexo-test/images/ouba.jpg">
+      <meta itemprop="name" content="绯狱丸丶">
+      <meta itemprop="description" content="DHR‘s Blog">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="半云半雾">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          在Spring + MyBatis整合中遇到的问题
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-01-23 19:04:58 / 修改时间：20:16:57" itemprop="dateCreated datePublished" datetime="2021-01-23T19:04:58+08:00">2021-01-23</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo-test/categories/Information-Security-Study/" itemprop="url" rel="index"><span itemprop="name">Information Security Study</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo-test/categories/Information-Security-Study/Code-Language/" itemprop="url" rel="index"><span itemprop="name">Code Language</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo-test/categories/Information-Security-Study/Code-Language/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>记一下在 Spring + MyBatis 整合中遇到的问题以及解决方案</p>
+<a id="more"></a>
+
+<h2 id="org-springframework-jdbc-BadSqlGrammarException"><a href="#org-springframework-jdbc-BadSqlGrammarException" class="headerlink" title="org.springframework.jdbc.BadSqlGrammarException"></a>org.springframework.jdbc.BadSqlGrammarException</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">org.springframework.jdbc.BadSqlGrammarException: </span><br><span class="line">### Error querying database.  Cause: java.sql.SQLSyntaxErrorException: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'select seckill_id,name,number,start_time,end_time,create_time</span><br><span class="line">        from secki<span class="string">' at line 2</span></span><br><span class="line"><span class="string">### The error may exist in file [D:\Code\Java\SecKill\target\classes\mapper\SecKillDao.xml]</span></span><br><span class="line"><span class="string">### The error may involve org.seckill.dao.SecKillDao.queryById-Inline</span></span><br><span class="line"><span class="string">### The error occurred while setting parameters</span></span><br><span class="line"><span class="string">### SQL: use seckill;         select seckill_id,name,number,start_time,end_time,create_time         from seckill.seckill         where seckill_id = ?</span></span><br><span class="line"><span class="string">### Cause: java.sql.SQLSyntaxErrorException: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '</span>select seckill_id,name,number,start_time,end_time,create_time</span><br><span class="line">        from secki<span class="string">' at line 2</span></span><br><span class="line"><span class="string">; bad SQL grammar []; nested exception is java.sql.SQLSyntaxErrorException: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '</span>select seckill_id,name,number,start_time,end_time,create_time</span><br><span class="line">        from secki<span class="string">' at line 2</span></span><br></pre></td></tr></table></figure>
+
+<p>这是我的报错信息，导致这个问题的原因有很多，但归根结底是 mapper 的 xml 中 SQL 语句的问题</p>
+<ol>
+<li>xml 中的 SQL 语句中的表名或者字段名含有 SQL 数据库的关键字，比如 ORDER , INSERT 之类的，这个时候要么改字段名（注意一般不要将字段名设置为关键字），要么把相应的字段名用 ` 引号括起来，表明这不是 SQL 关键字。</li>
+<li>也有可能是属性注入失败的问题，关于属性注入失败的原因可能是注入字段的 #{PARANAME} 中的 PARANAME 名跟方法中的属性名不同，这里建议在声明方法时加上 @Param(“name”) 的方式命名属性，比如</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">reduceNumber</span><span class="params">(@Param(<span class="string">"secKillId"</span>)</span> <span class="keyword">long</span> secKillId,@<span class="title">Param</span><span class="params">(<span class="string">"killTime"</span>)</span> Date killTime)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>​        但一般来说都不是这个问题^^</p>
+<ol start="3">
+<li><p>这个情况也是我遇到的问题，出错的代码如下：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">"queryById"</span> <span class="attr">resultType</span>=<span class="string">"SecKill"</span> <span class="attr">parameterType</span>=<span class="string">"long"</span>&gt;</span></span><br><span class="line">    use seckill;</span><br><span class="line">    select seckill_id,name,number,start_time,end_time,create_time</span><br><span class="line">    from seckill	<span class="comment">&lt;!-- 我的数据库名和表名都是 seckill --&gt;</span></span><br><span class="line">    where seckill_id = #&#123;secKillId&#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>我的 SQL 语句中有了分号，所以导致的 SQL 语法不对，解决办法是去掉分号，然后改写 SQL 语句为：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">    <span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">"queryById"</span> <span class="attr">resultType</span>=<span class="string">"SecKill"</span> <span class="attr">parameterType</span>=<span class="string">"long"</span>&gt;</span></span><br><span class="line">#         use seckill;</span><br><span class="line">        select seckill_id,name,number,start_time,end_time,create_time</span><br><span class="line">        from seckill.seckill</span><br><span class="line">        where seckill_id = #&#123;secKillId&#125;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>这也说明了在 MyBatis 的 mapper.xml 文件中 SQL 语句不要有分号。</p>
+</li>
+</ol>
+<h2 id="java-lang-IllegalStateException-Failed-to-load-ApplicationContext"><a href="#java-lang-IllegalStateException-Failed-to-load-ApplicationContext" class="headerlink" title="java.lang.IllegalStateException: Failed to load ApplicationContext"></a>java.lang.IllegalStateException: Failed to load ApplicationContext</h2><p>错误信息给的很明确：加载应用上下文失败，也就是加载某个配置文件失败。具体是哪个配置文件就需要看详细的错误信息了</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'sqlSessionFactory' defined in class path resource [spring/spring-dao.xml]: Invocation of init method failed; nested exception is org.springframework.core.NestedIOException: Failed to parse config resource: class path resource [mybatis-config.xml]; nested exception is org.apache.ibatis.builder.BuilderException: Error parsing SQL Mapper Configuration. Cause: org.apache.ibatis.builder.BuilderException: The setting useColumnabel is not known.  Make sure you spelled it correctly (case sensitive).</span><br></pre></td></tr></table></figure>
+
+<p>从这里可以看到是在初始化 sqlSessionFactory 的地方出了错，再往下面看就能看到具体的位置是 <code>The setting useColumnabel is not known</code> 也就是说拼写出错，这可能是由不熟悉配置文件的属性值或者马虎导致的。检查并查询官方文档更改为正确的拼写即可。</p>
+<h2 id="JDBC-驱动"><a href="#JDBC-驱动" class="headerlink" title="JDBC 驱动"></a>JDBC 驱动</h2><p>这里顺带提一句，MySQL 数据库的 JDBC 驱动地址不再是 <code>com.mysql.jdbc.Driver</code> （虽然也能用），而是新的 <code>com.mysql.cj.jdbc.Driver</code></p>
+<h2 id="org-mybatis-spring-MyBatisSystemException"><a href="#org-mybatis-spring-MyBatisSystemException" class="headerlink" title="org.mybatis.spring.MyBatisSystemException"></a>org.mybatis.spring.MyBatisSystemException</h2><p>详细信息：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">org.mybatis.spring.MyBatisSystemException: nested exception is org.apache.ibatis.exceptions.PersistenceException: </span><br><span class="line">### Error querying database.  Cause: org.springframework.jdbc.CannotGetJdbcConnectionException: Failed to obtain JDBC Connection; nested exception is java.sql.SQLException: Connections could not be acquired from the underlying database!</span><br><span class="line">### The error may exist in file [D:\Code\Java\SecKill\target\classes\mapper\SecKillDao.xml]</span><br><span class="line">### The error may involve org.seckill.dao.SecKillDao.queryById</span><br><span class="line">### The error occurred while executing a query</span><br><span class="line">### Cause: org.springframework.jdbc.CannotGetJdbcConnectionException: Failed to obtain JDBC Connection; nested exception is java.sql.SQLException: Connections could not be acquired from the underlying database!</span><br></pre></td></tr></table></figure>
+
+<p>错误信息显示是获取数据库连接出错，这个错误出现的也有几种情况</p>
+<ol>
+<li>顺着上面的错误信息再往下找能找到 <code>Caused by: java.sql.SQLSyntaxErrorException: Unknown database &#39;seckil&#39;</code>，可以发现数据库连接池 jdbcUrl 的属性值配置本身就有问题 ，比如少写了个啥字母之类的，这个不必多说检查出来，改正确就行了</li>
+<li>数据库连接地址没问题，但是还是报了这个错，这是我遇到的问题。老规矩，继续往下找，错误信息越往后位置越精确！</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Caused by: java.sql.SQLException: The server time zone value <span class="string">'�й���׼ʱ��'</span> is unrecognized or represents more than one time zone. <span class="function">You must configure either the server or JDBC <span class="title">driver</span> <span class="params">(via the <span class="string">'serverTimezone'</span> configuration property)</span> to use a more specific time zone value <span class="keyword">if</span> you want to utilize time zone support.</span></span><br></pre></td></tr></table></figure>
+
+<p>​        然后发现这么个错，说服务器的时区配置未被认可或者超过了一个时区的数量限制，你必须配置 JDBC 或者         服务器的 serverTimezone 属性中的任何一个，本来的代码是 <code>jdbcUrl = jdbc:mysql://localhost:3306/seckill</code> 压根儿就没配置时区，报错。解决方案：</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">jdbcUrl</span> = <span class="string">jdbc:mysql://127.0.0.1:3306/test?useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=UTC 解决时区和中文乱码问题</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="java-lang-ClassNotFoundException-“com-mysql-cj-jdbc-Driver”"><a href="#java-lang-ClassNotFoundException-“com-mysql-cj-jdbc-Driver”" class="headerlink" title="java.lang.ClassNotFoundException: “com.mysql.cj.jdbc.Driver”"></a>java.lang.ClassNotFoundException: “com.mysql.cj.jdbc.Driver”</h2><p>先上数据库参数配置代码</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 数据库驱动</span></span><br><span class="line"><span class="attr">driver</span> = <span class="string">"com.mysql.cj.jdbc.Driver"</span></span><br><span class="line"><span class="comment"># 数据库连接</span></span><br><span class="line"><span class="comment"># jdbc:mysql://127.0.0.1:3306/test?useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=UTC 解决时区和中文乱码问题</span></span><br><span class="line"><span class="attr">jdbcUrl</span> = <span class="string">jdbc:mysql://localhost:3306/seckill?serverTimezone=UTC</span></span><br><span class="line"><span class="comment"># USER_NAME</span></span><br><span class="line"><span class="attr">user_name</span> = <span class="string">root</span></span><br><span class="line"><span class="comment"># PWD</span></span><br><span class="line"><span class="attr">pwd</span> = <span class="string">201313</span></span><br></pre></td></tr></table></figure>
+
+<p>这个问题就是属性值写法的问题了，properties 里面的所有数据都是以键值对的方式进行存储的，value 值都不用双引号，并且后面不能跟空格，输完直接回车</p>
+<h2 id="java-lang-AbstractMethodError-Methodcom-mchange-v2-c3p0-impl-NewProxyResultSet-isClosed-Z-is-abstract"><a href="#java-lang-AbstractMethodError-Methodcom-mchange-v2-c3p0-impl-NewProxyResultSet-isClosed-Z-is-abstract" class="headerlink" title="java.lang.AbstractMethodError:Methodcom/mchange/v2/c3p0/impl/NewProxyResultSet.isClosed()Z is abstract"></a>java.lang.AbstractMethodError:Methodcom/mchange/v2/c3p0/impl/NewProxyResultSet.isClosed()Z is abstract</h2><p>出现了这个错，本应被废弃的 isClose() 被调用了！解决方案就是不用就可以了，isClose() 方法在 c3p0 version 0.9.2.x 之后的版本就被废弃了，所以只需要将 maven 依赖的 c3p0 版本更换为 0.9.2.x 之后的版本就行，推荐 0.9.5.5 最新版。同时配置方式也发生了一些变化：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- Old version setting  --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>c3p0<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>c3p0<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">version</span>&gt;</span>0.9.1.2<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- New version setting  --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.mchange<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>c3p0<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">version</span>&gt;</span>0.9.5.5<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>绯狱丸丶
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://d2372017513.github.io/hexo-test/Information-Security-Study/Code-Language/Java/%E5%9C%A8Spring-MyBatis%E6%95%B4%E5%90%88%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/" title="在Spring + MyBatis整合中遇到的问题">http://d2372017513.github.io/hexo-test/Information-Security-Study/Code-Language/Java/在Spring-MyBatis整合中遇到的问题/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/hexo-test/tags/Java/" rel="tag"># Java</a>
+              <a href="/hexo-test/tags/Exceptions/" rel="tag"># Exceptions</a>
+              <a href="/hexo-test/tags/Spring-MyBatis/" rel="tag"># Spring+MyBatis</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/hexo-test/Information-Security-Study/Code-Language/Java/Java%20%E4%B8%AD%E5%B8%B8%E8%A7%81%E7%9A%84%E5%AE%B9%E5%99%A8/" rel="prev" title="Java容器">
+      <i class="fa fa-chevron-left"></i> Java容器
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#org-springframework-jdbc-BadSqlGrammarException"><span class="nav-number">1.</span> <span class="nav-text">org.springframework.jdbc.BadSqlGrammarException</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#java-lang-IllegalStateException-Failed-to-load-ApplicationContext"><span class="nav-number">2.</span> <span class="nav-text">java.lang.IllegalStateException: Failed to load ApplicationContext</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JDBC-驱动"><span class="nav-number">3.</span> <span class="nav-text">JDBC 驱动</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#org-mybatis-spring-MyBatisSystemException"><span class="nav-number">4.</span> <span class="nav-text">org.mybatis.spring.MyBatisSystemException</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#java-lang-ClassNotFoundException-“com-mysql-cj-jdbc-Driver”"><span class="nav-number">5.</span> <span class="nav-text">java.lang.ClassNotFoundException: “com.mysql.cj.jdbc.Driver”</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#java-lang-AbstractMethodError-Methodcom-mchange-v2-c3p0-impl-NewProxyResultSet-isClosed-Z-is-abstract"><span class="nav-number">6.</span> <span class="nav-text">java.lang.AbstractMethodError:Methodcom&#x2F;mchange&#x2F;v2&#x2F;c3p0&#x2F;impl&#x2F;NewProxyResultSet.isClosed()Z is abstract</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="绯狱丸丶"
+      src="/hexo-test/images/ouba.jpg">
+  <p class="site-author-name" itemprop="name">绯狱丸丶</p>
+  <div class="site-description" itemprop="description">DHR‘s Blog</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/hexo-test/archives/">
+        
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/hexo-test/categories/">
+          
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/hexo-test/tags/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/d2372017513" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;d2372017513" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/hexo-test/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">绯狱丸丶</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">149k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:15</span>
+</div>
+  <div class="theme-info">主题 – <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.7.2
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/hexo-test/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+  <script src="/hexo-test/lib/velocity/velocity.min.js"></script>
+  <script src="/hexo-test/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/hexo-test/js/utils.js"></script>
+
+<script src="/hexo-test/js/motion.js"></script>
+
+
+<script src="/hexo-test/js/schemes/pisces.js"></script>
+
+
+<script src="/hexo-test/js/next-boot.js"></script>
+
+<script src="/hexo-test/js/bookmark.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/hexo-test/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script src="/hexo-test/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","model":{"jsonPath":"/hexo-test/live2dw/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true},"log":false,"tagMode":false});</script></body>
+</html>
+<!-- 雪花特效 -->
+<script type="text/javascript" src="/hexo-test/js/snow.js"></script>
+<!-- 切换页面标题变化-->
+<script type = "text/javascript" src = "/hexo-test/js/FunnyTile.js"></script>

@@ -1,6 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>在Spring + MyBatis整合中遇到的问题</title>
+    <url>/hexo-test/Information-Security-Study/Code-Language/Java/%E5%9C%A8Spring-MyBatis%E6%95%B4%E5%90%88%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/</url>
+    <content><![CDATA[<p>记一下在 Spring + MyBatis 整合中遇到的问题以及解决方案</p>
+<a id="more"></a>
+
+<h2 id="org-springframework-jdbc-BadSqlGrammarException"><a href="#org-springframework-jdbc-BadSqlGrammarException" class="headerlink" title="org.springframework.jdbc.BadSqlGrammarException"></a>org.springframework.jdbc.BadSqlGrammarException</h2><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">org.springframework.jdbc.BadSqlGrammarException: </span><br><span class="line">### Error querying database.  Cause: java.sql.SQLSyntaxErrorException: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'select seckill_id,name,number,start_time,end_time,create_time</span><br><span class="line">        from secki<span class="string">' at line 2</span></span><br><span class="line"><span class="string">### The error may exist in file [D:\Code\Java\SecKill\target\classes\mapper\SecKillDao.xml]</span></span><br><span class="line"><span class="string">### The error may involve org.seckill.dao.SecKillDao.queryById-Inline</span></span><br><span class="line"><span class="string">### The error occurred while setting parameters</span></span><br><span class="line"><span class="string">### SQL: use seckill;         select seckill_id,name,number,start_time,end_time,create_time         from seckill.seckill         where seckill_id = ?</span></span><br><span class="line"><span class="string">### Cause: java.sql.SQLSyntaxErrorException: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '</span>select seckill_id,name,number,start_time,end_time,create_time</span><br><span class="line">        from secki<span class="string">' at line 2</span></span><br><span class="line"><span class="string">; bad SQL grammar []; nested exception is java.sql.SQLSyntaxErrorException: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '</span>select seckill_id,name,number,start_time,end_time,create_time</span><br><span class="line">        from secki<span class="string">' at line 2</span></span><br></pre></td></tr></table></figure>
+
+<p>这是我的报错信息，导致这个问题的原因有很多，但归根结底是 mapper 的 xml 中 SQL 语句的问题</p>
+<ol>
+<li>xml 中的 SQL 语句中的表名或者字段名含有 SQL 数据库的关键字，比如 ORDER , INSERT 之类的，这个时候要么改字段名（注意一般不要将字段名设置为关键字），要么把相应的字段名用 ` 引号括起来，表明这不是 SQL 关键字。</li>
+<li>也有可能是属性注入失败的问题，关于属性注入失败的原因可能是注入字段的 #{PARANAME} 中的 PARANAME 名跟方法中的属性名不同，这里建议在声明方法时加上 @Param(“name”) 的方式命名属性，比如</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">reduceNumber</span><span class="params">(@Param(<span class="string">"secKillId"</span>)</span> <span class="keyword">long</span> secKillId,@<span class="title">Param</span><span class="params">(<span class="string">"killTime"</span>)</span> Date killTime)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>​        但一般来说都不是这个问题^^</p>
+<ol start="3">
+<li><p>这个情况也是我遇到的问题，出错的代码如下：</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">"queryById"</span> <span class="attr">resultType</span>=<span class="string">"SecKill"</span> <span class="attr">parameterType</span>=<span class="string">"long"</span>&gt;</span></span><br><span class="line">    use seckill;</span><br><span class="line">    select seckill_id,name,number,start_time,end_time,create_time</span><br><span class="line">    from seckill	<span class="comment">&lt;!-- 我的数据库名和表名都是 seckill --&gt;</span></span><br><span class="line">    where seckill_id = #&#123;secKillId&#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>我的 SQL 语句中有了分号，所以导致的 SQL 语法不对，解决办法是去掉分号，然后改写 SQL 语句为：</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line">    <span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">"queryById"</span> <span class="attr">resultType</span>=<span class="string">"SecKill"</span> <span class="attr">parameterType</span>=<span class="string">"long"</span>&gt;</span></span><br><span class="line">#         use seckill;</span><br><span class="line">        select seckill_id,name,number,start_time,end_time,create_time</span><br><span class="line">        from seckill.seckill</span><br><span class="line">        where seckill_id = #&#123;secKillId&#125;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>这也说明了在 MyBatis 的 mapper.xml 文件中 SQL 语句不要有分号。</p>
+</li>
+</ol>
+<h2 id="java-lang-IllegalStateException-Failed-to-load-ApplicationContext"><a href="#java-lang-IllegalStateException-Failed-to-load-ApplicationContext" class="headerlink" title="java.lang.IllegalStateException: Failed to load ApplicationContext"></a>java.lang.IllegalStateException: Failed to load ApplicationContext</h2><p>错误信息给的很明确：加载应用上下文失败，也就是加载某个配置文件失败。具体是哪个配置文件就需要看详细的错误信息了</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line">Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'sqlSessionFactory' defined in class path resource [spring/spring-dao.xml]: Invocation of init method failed; nested exception is org.springframework.core.NestedIOException: Failed to parse config resource: class path resource [mybatis-config.xml]; nested exception is org.apache.ibatis.builder.BuilderException: Error parsing SQL Mapper Configuration. Cause: org.apache.ibatis.builder.BuilderException: The setting useColumnabel is not known.  Make sure you spelled it correctly (case sensitive).</span><br></pre></td></tr></table></figure>
+
+<p>从这里可以看到是在初始化 sqlSessionFactory 的地方出了错，再往下面看就能看到具体的位置是 <code>The setting useColumnabel is not known</code> 也就是说拼写出错，这可能是由不熟悉配置文件的属性值或者马虎导致的。检查并查询官方文档更改为正确的拼写即可。</p>
+<h2 id="JDBC-驱动"><a href="#JDBC-驱动" class="headerlink" title="JDBC 驱动"></a>JDBC 驱动</h2><p>这里顺带提一句，MySQL 数据库的 JDBC 驱动地址不再是 <code>com.mysql.jdbc.Driver</code> （虽然也能用），而是新的 <code>com.mysql.cj.jdbc.Driver</code></p>
+<h2 id="org-mybatis-spring-MyBatisSystemException"><a href="#org-mybatis-spring-MyBatisSystemException" class="headerlink" title="org.mybatis.spring.MyBatisSystemException"></a>org.mybatis.spring.MyBatisSystemException</h2><p>详细信息：</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line">org.mybatis.spring.MyBatisSystemException: nested exception is org.apache.ibatis.exceptions.PersistenceException: </span><br><span class="line">### Error querying database.  Cause: org.springframework.jdbc.CannotGetJdbcConnectionException: Failed to obtain JDBC Connection; nested exception is java.sql.SQLException: Connections could not be acquired from the underlying database!</span><br><span class="line">### The error may exist in file [D:\Code\Java\SecKill\target\classes\mapper\SecKillDao.xml]</span><br><span class="line">### The error may involve org.seckill.dao.SecKillDao.queryById</span><br><span class="line">### The error occurred while executing a query</span><br><span class="line">### Cause: org.springframework.jdbc.CannotGetJdbcConnectionException: Failed to obtain JDBC Connection; nested exception is java.sql.SQLException: Connections could not be acquired from the underlying database!</span><br></pre></td></tr></table></figure>
+
+<p>错误信息显示是获取数据库连接出错，这个错误出现的也有几种情况</p>
+<ol>
+<li>顺着上面的错误信息再往下找能找到 <code>Caused by: java.sql.SQLSyntaxErrorException: Unknown database &#39;seckil&#39;</code>，可以发现数据库连接池 jdbcUrl 的属性值配置本身就有问题 ，比如少写了个啥字母之类的，这个不必多说检查出来，改正确就行了</li>
+<li>数据库连接地址没问题，但是还是报了这个错，这是我遇到的问题。老规矩，继续往下找，错误信息越往后位置越精确！</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Caused by: java.sql.SQLException: The server time zone value <span class="string">'�й���׼ʱ��'</span> is unrecognized or represents more than one time zone. <span class="function">You must configure either the server or JDBC <span class="title">driver</span> <span class="params">(via the <span class="string">'serverTimezone'</span> configuration property)</span> to use a more specific time zone value <span class="keyword">if</span> you want to utilize time zone support.</span></span><br></pre></td></tr></table></figure>
+
+<p>​        然后发现这么个错，说服务器的时区配置未被认可或者超过了一个时区的数量限制，你必须配置 JDBC 或者         服务器的 serverTimezone 属性中的任何一个，本来的代码是 <code>jdbcUrl = jdbc:mysql://localhost:3306/seckill</code> 压根儿就没配置时区，报错。解决方案：</p>
+<figure class="highlight properties"><table><tr><td class="code"><pre><span class="line"><span class="attr">jdbcUrl</span> = <span class="string">jdbc:mysql://127.0.0.1:3306/test?useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=UTC 解决时区和中文乱码问题</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="java-lang-ClassNotFoundException-“com-mysql-cj-jdbc-Driver”"><a href="#java-lang-ClassNotFoundException-“com-mysql-cj-jdbc-Driver”" class="headerlink" title="java.lang.ClassNotFoundException: “com.mysql.cj.jdbc.Driver”"></a>java.lang.ClassNotFoundException: “com.mysql.cj.jdbc.Driver”</h2><p>先上数据库参数配置代码</p>
+<figure class="highlight properties"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 数据库驱动</span></span><br><span class="line"><span class="attr">driver</span> = <span class="string">"com.mysql.cj.jdbc.Driver"</span></span><br><span class="line"><span class="comment"># 数据库连接</span></span><br><span class="line"><span class="comment"># jdbc:mysql://127.0.0.1:3306/test?useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=UTC 解决时区和中文乱码问题</span></span><br><span class="line"><span class="attr">jdbcUrl</span> = <span class="string">jdbc:mysql://localhost:3306/seckill?serverTimezone=UTC</span></span><br><span class="line"><span class="comment"># USER_NAME</span></span><br><span class="line"><span class="attr">user_name</span> = <span class="string">root</span></span><br><span class="line"><span class="comment"># PWD</span></span><br><span class="line"><span class="attr">pwd</span> = <span class="string">201313</span></span><br></pre></td></tr></table></figure>
+
+<p>这个问题就是属性值写法的问题了，properties 里面的所有数据都是以键值对的方式进行存储的，value 值都不用双引号，并且后面不能跟空格，输完直接回车</p>
+<h2 id="java-lang-AbstractMethodError-Methodcom-mchange-v2-c3p0-impl-NewProxyResultSet-isClosed-Z-is-abstract"><a href="#java-lang-AbstractMethodError-Methodcom-mchange-v2-c3p0-impl-NewProxyResultSet-isClosed-Z-is-abstract" class="headerlink" title="java.lang.AbstractMethodError:Methodcom/mchange/v2/c3p0/impl/NewProxyResultSet.isClosed()Z is abstract"></a>java.lang.AbstractMethodError:Methodcom/mchange/v2/c3p0/impl/NewProxyResultSet.isClosed()Z is abstract</h2><p>出现了这个错，本应被废弃的 isClose() 被调用了！解决方案就是不用就可以了，isClose() 方法在 c3p0 version 0.9.2.x 之后的版本就被废弃了，所以只需要将 maven 依赖的 c3p0 版本更换为 0.9.2.x 之后的版本就行，推荐 0.9.5.5 最新版。同时配置方式也发生了一些变化：</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!-- Old version setting  --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>c3p0<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>c3p0<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">version</span>&gt;</span>0.9.1.2<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- New version setting  --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.mchange<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>c3p0<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">version</span>&gt;</span>0.9.5.5<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Information Security Study</category>
+        <category>Code Language</category>
+        <category>Java</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+        <tag>Exceptions</tag>
+        <tag>Spring+MyBatis</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Java容器</title>
     <url>/hexo-test/Information-Security-Study/Code-Language/Java/Java%20%E4%B8%AD%E5%B8%B8%E8%A7%81%E7%9A%84%E5%AE%B9%E5%99%A8/</url>
     <content><![CDATA[<p><a href="https://www.cnblogs.com/LipeiNet/p/5888513.html" target="_blank" rel="noopener">文摘自 IpeiNet 博客(主体)</a></p>
@@ -437,93 +502,6 @@
       </tags>
   </entry>
   <entry>
-    <title>数据结构</title>
-    <url>/hexo-test/Information-Security-Study/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E7%AC%94%E8%AE%B0/</url>
-    <content><![CDATA[<h1 id="少壮不努力，老大借吉言"><a href="#少壮不努力，老大借吉言" class="headerlink" title="少壮不努力，老大借吉言"></a>少壮不努力，老大借吉言</h1><h1 id="1、数据结构"><a href="#1、数据结构" class="headerlink" title="1、数据结构"></a>1、数据结构</h1><p>数据结构（Data Structure）是一门研究非数值运算的程序设计问题中计算机的操作对象，以及它们之间的关系和操作的学科。</p>
-<p>1）数据结构中的时间复杂度：</p>
-<p>一个算法的时间复杂度是该算法的时间开销，是求解问题规模 n 的函数。当 n 趋近于无穷大时，时间复杂度的数量级称为算法的渐进时间复杂度，记为：<br>$$<br>T(n) = O(f(n))<br>$$<br>它表示随问题规模的 n 的增长，算法执行时间的增长度和函数 f(n) 的增长率是相同的。</p>
-<table>
-<thead>
-<tr>
-<th>O(1)</th>
-<th>O(n)</th>
-<th>O(n²)</th>
-<th>O(n㏒n)</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>常量阶</td>
-<td>线性阶</td>
-<td>平方阶</td>
-<td>线性对数阶</td>
-</tr>
-</tbody></table>
-<p>对于一个算法的时间复杂度讨论一般是看它的最坏情况下的时间复杂度，也就是分析最坏情况下的算法执行的一个上限。</p>
-<a id="more"></a>
-
-<h1 id="2、树"><a href="#2、树" class="headerlink" title="2、树"></a>2、树</h1><h2 id="2-1-什么叫做树及其相关术语"><a href="#2-1-什么叫做树及其相关术语" class="headerlink" title="2.1 什么叫做树及其相关术语"></a>2.1 什么叫做树及其相关术语</h2><p>树（Tree）是 n （n &gt;= 0）个节点的有限集。从递归的角度来理解，在任意一棵树中：</p>
-<ol>
-<li>当 n = 0 时，树为空，或者说树不存在（这种情况无意义，一般不允许存在）</li>
-<li>当 n = 1 时，该元素就成为树的根节点</li>
-<li>当 n &gt; 1 时，必有一个元素为根节点，而其余节点可分为 m 个非空且互不相交的有限集 T1,T2,T3,….,Tm，其中每个集合本身又是一棵树，称之为根的子树（subtree）</li>
-</ol>
-<p>树的特点：</p>
-<ul>
-<li>一颗由 n 个节点组成的树，其边的数目必定是 n-1 。</li>
-<li>在一棵树中，从任意的一个节点到另外的一个节点之间的路径有且仅有一条。</li>
-</ul>
-<h3 id="常用术语："><a href="#常用术语：" class="headerlink" title="常用术语："></a>常用术语：</h3><ul>
-<li>深度：在一棵树中每个节点有自己的层次。如果某节点位于 L 层（根节点层数为 1 ），则其孩子节点位于 L+1 层，双亲节点（如果存在的话）位于 L - 1 层。树中节点的最大层次，称为树的深度或者高度。</li>
-<li>度：一个节点的度表示了一个节点的子节点数目，如：一个节点的子节点有 5 个，那么这个节点度数为 5 </li>
-<li>有序树：在一棵树中，如果同层的孩子节点左右互相换位置会使得其表达的意思发生变化，则该树为有序树。</li>
-<li>无序树：同上，如果同层的孩子节点左右互换后，其表达的意思并无差别，则称为无序树。</li>
-<li>森林：多颗不相交的树的集合就叫做森林</li>
-</ul>
-<h2 id="2-2-二叉树"><a href="#2-2-二叉树" class="headerlink" title="2.2 二叉树"></a>2.2 二叉树</h2><p>二叉树（Binary Tree）是另一种树形结构，其特点是每个节点至多只有两颗子树（即二叉树中不存在度大于 2 的节点），二叉树的子树有左右之分，其次序不能随意调换，因为二叉树是一种有序树。</p>
-<h3 id="2-2-1-二叉树的性质"><a href="#2-2-1-二叉树的性质" class="headerlink" title="2.2.1 二叉树的性质"></a>2.2.1 二叉树的性质</h3><ul>
-<li>在二叉树的第 i 层上至多有 2 <sup>i-1</sup> 个节点（i &gt;= 1）</li>
-<li>深度为 k 的二叉树至多有 2<sup>k</sup>- 1 个节点</li>
-<li>对于一棵完全二叉树 T ，如果其终端节点（叶子节点）数为 n<sub>0</sub> ,度为 2 的节点数为 n<sub>2</sub> ，则有 n<sub>0</sub> = n<sub>2</sub> + 1同样的，设 n<sub>1</sub> 为 T 中度为 1 的节点数。因为二叉树中的所有节点的度均小于或者等于 2 ，也就是说，对于任意的二叉树，其节点总数总是满足下式：n = n<sub>0</sub> + n<sub>1</sub> + n<sub>2</sub></li>
-<li>设 B 为一棵二叉树的总边数。根据树的性质，对于一棵多叉树，边和节点的关系总满足：n = B + 1，B =  n<sub>1</sub> + 2n<sub>2</sub> </li>
-<li>拥有 n 个节点的完全二叉树的深度为 log<sub>2</sub>n + 1</li>
-<li>如果对一棵有 n 个节点的完全二叉树的节点按层序编号（从第一层到 log<sub>2</sub>n + 1 层，每层从左到右），则对任一节点 i （1 ≤ i ≤ n），有：<ul>
-<li>如果 i = 1，则节点 i 是二叉树的根，没有双亲；如果 i &gt; 1 ，则其双亲节点编号为 i/2（向下取整）</li>
-<li>如果 2i &gt; n，则节点 i 没有左孩子；否则其左孩子编号必为 2i</li>
-<li>如果 2i + 1 &gt; n，则节点没有右孩子；否则其右孩子编号必为 2i + 1</li>
-</ul>
-</li>
-</ul>
-<h3 id="2-2-2-二叉树的遍历操作"><a href="#2-2-2-二叉树的遍历操作" class="headerlink" title="2.2.2 二叉树的遍历操作"></a>2.2.2 二叉树的遍历操作</h3><p>二叉树的遍历归根结底是一个递归的过程</p>
-<ol>
-<li>先序遍历<ol>
-<li>访问根节点</li>
-<li>先序遍历左子树</li>
-<li>先序遍历右子树</li>
-</ol>
-</li>
-<li>中序遍历<ol>
-<li>中序遍历左子树</li>
-<li>访问根节点</li>
-<li>中序遍历右子树</li>
-</ol>
-</li>
-<li>后序遍历<ol>
-<li>后序遍历左子树</li>
-<li>后序遍历右子树</li>
-<li>访问根节点</li>
-</ol>
-</li>
-</ol>
-]]></content>
-      <categories>
-        <category>Information Security Study</category>
-        <category>数据结构</category>
-      </categories>
-      <tags>
-        <tag>数据结构</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>反射和注解</title>
     <url>/hexo-test/Information-Security-Study/Code-Language/Java/%E5%8F%8D%E5%B0%84%E5%92%8C%E6%B3%A8%E8%A7%A3/</url>
     <content><![CDATA[<h1 id="第一章-反射"><a href="#第一章-反射" class="headerlink" title="第一章 反射"></a>第一章 反射</h1><h2 id="1-1-反射的概述"><a href="#1-1-反射的概述" class="headerlink" title="1.1 反射的概述"></a>1.1 反射的概述</h2><h3 id="1-1-1-反射的引入"><a href="#1-1-1-反射的引入" class="headerlink" title="1.1.1  反射的引入"></a>1.1.1  反射的引入</h3><ul>
@@ -714,6 +692,93 @@
       </categories>
       <tags>
         <tag>Java</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>数据结构</title>
+    <url>/hexo-test/Information-Security-Study/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E7%AC%94%E8%AE%B0/</url>
+    <content><![CDATA[<h1 id="少壮不努力，老大借吉言"><a href="#少壮不努力，老大借吉言" class="headerlink" title="少壮不努力，老大借吉言"></a>少壮不努力，老大借吉言</h1><h1 id="1、数据结构"><a href="#1、数据结构" class="headerlink" title="1、数据结构"></a>1、数据结构</h1><p>数据结构（Data Structure）是一门研究非数值运算的程序设计问题中计算机的操作对象，以及它们之间的关系和操作的学科。</p>
+<p>1）数据结构中的时间复杂度：</p>
+<p>一个算法的时间复杂度是该算法的时间开销，是求解问题规模 n 的函数。当 n 趋近于无穷大时，时间复杂度的数量级称为算法的渐进时间复杂度，记为：<br>$$<br>T(n) = O(f(n))<br>$$<br>它表示随问题规模的 n 的增长，算法执行时间的增长度和函数 f(n) 的增长率是相同的。</p>
+<table>
+<thead>
+<tr>
+<th>O(1)</th>
+<th>O(n)</th>
+<th>O(n²)</th>
+<th>O(n㏒n)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>常量阶</td>
+<td>线性阶</td>
+<td>平方阶</td>
+<td>线性对数阶</td>
+</tr>
+</tbody></table>
+<p>对于一个算法的时间复杂度讨论一般是看它的最坏情况下的时间复杂度，也就是分析最坏情况下的算法执行的一个上限。</p>
+<a id="more"></a>
+
+<h1 id="2、树"><a href="#2、树" class="headerlink" title="2、树"></a>2、树</h1><h2 id="2-1-什么叫做树及其相关术语"><a href="#2-1-什么叫做树及其相关术语" class="headerlink" title="2.1 什么叫做树及其相关术语"></a>2.1 什么叫做树及其相关术语</h2><p>树（Tree）是 n （n &gt;= 0）个节点的有限集。从递归的角度来理解，在任意一棵树中：</p>
+<ol>
+<li>当 n = 0 时，树为空，或者说树不存在（这种情况无意义，一般不允许存在）</li>
+<li>当 n = 1 时，该元素就成为树的根节点</li>
+<li>当 n &gt; 1 时，必有一个元素为根节点，而其余节点可分为 m 个非空且互不相交的有限集 T1,T2,T3,….,Tm，其中每个集合本身又是一棵树，称之为根的子树（subtree）</li>
+</ol>
+<p>树的特点：</p>
+<ul>
+<li>一颗由 n 个节点组成的树，其边的数目必定是 n-1 。</li>
+<li>在一棵树中，从任意的一个节点到另外的一个节点之间的路径有且仅有一条。</li>
+</ul>
+<h3 id="常用术语："><a href="#常用术语：" class="headerlink" title="常用术语："></a>常用术语：</h3><ul>
+<li>深度：在一棵树中每个节点有自己的层次。如果某节点位于 L 层（根节点层数为 1 ），则其孩子节点位于 L+1 层，双亲节点（如果存在的话）位于 L - 1 层。树中节点的最大层次，称为树的深度或者高度。</li>
+<li>度：一个节点的度表示了一个节点的子节点数目，如：一个节点的子节点有 5 个，那么这个节点度数为 5 </li>
+<li>有序树：在一棵树中，如果同层的孩子节点左右互相换位置会使得其表达的意思发生变化，则该树为有序树。</li>
+<li>无序树：同上，如果同层的孩子节点左右互换后，其表达的意思并无差别，则称为无序树。</li>
+<li>森林：多颗不相交的树的集合就叫做森林</li>
+</ul>
+<h2 id="2-2-二叉树"><a href="#2-2-二叉树" class="headerlink" title="2.2 二叉树"></a>2.2 二叉树</h2><p>二叉树（Binary Tree）是另一种树形结构，其特点是每个节点至多只有两颗子树（即二叉树中不存在度大于 2 的节点），二叉树的子树有左右之分，其次序不能随意调换，因为二叉树是一种有序树。</p>
+<h3 id="2-2-1-二叉树的性质"><a href="#2-2-1-二叉树的性质" class="headerlink" title="2.2.1 二叉树的性质"></a>2.2.1 二叉树的性质</h3><ul>
+<li>在二叉树的第 i 层上至多有 2 <sup>i-1</sup> 个节点（i &gt;= 1）</li>
+<li>深度为 k 的二叉树至多有 2<sup>k</sup>- 1 个节点</li>
+<li>对于一棵完全二叉树 T ，如果其终端节点（叶子节点）数为 n<sub>0</sub> ,度为 2 的节点数为 n<sub>2</sub> ，则有 n<sub>0</sub> = n<sub>2</sub> + 1同样的，设 n<sub>1</sub> 为 T 中度为 1 的节点数。因为二叉树中的所有节点的度均小于或者等于 2 ，也就是说，对于任意的二叉树，其节点总数总是满足下式：n = n<sub>0</sub> + n<sub>1</sub> + n<sub>2</sub></li>
+<li>设 B 为一棵二叉树的总边数。根据树的性质，对于一棵多叉树，边和节点的关系总满足：n = B + 1，B =  n<sub>1</sub> + 2n<sub>2</sub> </li>
+<li>拥有 n 个节点的完全二叉树的深度为 log<sub>2</sub>n + 1</li>
+<li>如果对一棵有 n 个节点的完全二叉树的节点按层序编号（从第一层到 log<sub>2</sub>n + 1 层，每层从左到右），则对任一节点 i （1 ≤ i ≤ n），有：<ul>
+<li>如果 i = 1，则节点 i 是二叉树的根，没有双亲；如果 i &gt; 1 ，则其双亲节点编号为 i/2（向下取整）</li>
+<li>如果 2i &gt; n，则节点 i 没有左孩子；否则其左孩子编号必为 2i</li>
+<li>如果 2i + 1 &gt; n，则节点没有右孩子；否则其右孩子编号必为 2i + 1</li>
+</ul>
+</li>
+</ul>
+<h3 id="2-2-2-二叉树的遍历操作"><a href="#2-2-2-二叉树的遍历操作" class="headerlink" title="2.2.2 二叉树的遍历操作"></a>2.2.2 二叉树的遍历操作</h3><p>二叉树的遍历归根结底是一个递归的过程</p>
+<ol>
+<li>先序遍历<ol>
+<li>访问根节点</li>
+<li>先序遍历左子树</li>
+<li>先序遍历右子树</li>
+</ol>
+</li>
+<li>中序遍历<ol>
+<li>中序遍历左子树</li>
+<li>访问根节点</li>
+<li>中序遍历右子树</li>
+</ol>
+</li>
+<li>后序遍历<ol>
+<li>后序遍历左子树</li>
+<li>后序遍历右子树</li>
+<li>访问根节点</li>
+</ol>
+</li>
+</ol>
+]]></content>
+      <categories>
+        <category>Information Security Study</category>
+        <category>数据结构</category>
+      </categories>
+      <tags>
+        <tag>数据结构</tag>
       </tags>
   </entry>
   <entry>
